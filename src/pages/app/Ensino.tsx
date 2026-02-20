@@ -1,10 +1,19 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { BookOpen } from "lucide-react";
+import { BookOpen, ChevronRight } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { useState } from "react";
+import CursoDetalhe from "@/components/ensino/CursoDetalhe";
+import type { Tables } from "@/integrations/supabase/types";
+
+type Curso = Tables<"cursos">;
 
 const Ensino = () => {
+  const { user } = useAuth();
+  const [cursoAberto, setCursoAberto] = useState<Curso | null>(null);
+
   const { data: cursos, isLoading } = useQuery({
     queryKey: ["cursos"],
     queryFn: async () => {
@@ -17,6 +26,46 @@ const Ensino = () => {
       return data;
     },
   });
+
+  // Fetch all user progress to calculate per-course percentages
+  const { data: progresso } = useQuery({
+    queryKey: ["progresso-user", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("progresso")
+        .select("aula_id, concluido")
+        .eq("user_id", user!.id)
+        .eq("concluido", true);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch aulas grouped by curso for progress calculation
+  const { data: aulasPorCurso } = useQuery({
+    queryKey: ["aulas-por-curso"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("aulas")
+        .select("id, modulo_id, modulos!inner(curso_id)");
+      if (error) throw error;
+      return data as Array<{ id: string; modulo_id: string; modulos: { curso_id: string } }>;
+    },
+  });
+
+  const getProgressoCurso = (cursoId: string) => {
+    if (!aulasPorCurso || !progresso) return 0;
+    const aulasDoCurso = aulasPorCurso.filter((a) => a.modulos.curso_id === cursoId);
+    if (aulasDoCurso.length === 0) return 0;
+    const progressoIds = new Set(progresso.map((p) => p.aula_id));
+    const concluidas = aulasDoCurso.filter((a) => progressoIds.has(a.id)).length;
+    return Math.round((concluidas / aulasDoCurso.length) * 100);
+  };
+
+  if (cursoAberto) {
+    return <CursoDetalhe curso={cursoAberto} onVoltar={() => setCursoAberto(null)} />;
+  }
 
   return (
     <div className="space-y-6">
@@ -36,20 +85,30 @@ const Ensino = () => {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {cursos.map((curso) => (
-            <Card key={curso.id} className="hover:border-primary/50 transition-colors cursor-pointer">
-              <CardHeader>
-                <CardTitle className="text-lg">{curso.titulo}</CardTitle>
-                {curso.descricao && (
-                  <CardDescription>{curso.descricao}</CardDescription>
-                )}
-              </CardHeader>
-              <CardContent>
-                <Progress value={0} className="h-2" />
-                <p className="text-xs text-muted-foreground mt-2">0% concluído</p>
-              </CardContent>
-            </Card>
-          ))}
+          {cursos.map((curso) => {
+            const pct = getProgressoCurso(curso.id);
+            return (
+              <Card
+                key={curso.id}
+                className="hover:border-primary/50 transition-colors cursor-pointer group"
+                onClick={() => setCursoAberto(curso)}
+              >
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">{curso.titulo}</CardTitle>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </div>
+                  {curso.descricao && (
+                    <CardDescription>{curso.descricao}</CardDescription>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <Progress value={pct} className="h-2" />
+                  <p className="text-xs text-muted-foreground mt-2">{pct}% concluído</p>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
-import { User } from "@supabase/supabase-js";
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -26,86 +26,90 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadProfile = useCallback(async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
-      if (error) {
-        console.error("Failed to load profile:", error.message);
-        setProfile(null);
-      } else {
-        setProfile(data);
-      }
-    } catch (err) {
-      console.error("Profile load exception:", err);
-      setProfile(null);
-    }
-  }, []);
-
   useEffect(() => {
     let isMounted = true;
 
-    // INITIAL load — controls loading state
-    const initializeAuth = async () => {
+    const loadProfile = async (userId: string) => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!isMounted) return;
-        
-        const currentUser = session?.user ?? null;
-        setUser(currentUser);
-        
-        if (currentUser) {
-          await loadProfile(currentUser.id);
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .maybeSingle();
+        if (isMounted) {
+          if (error) {
+            console.error("Profile load error:", error.message);
+            setProfile(null);
+          } else {
+            setProfile(data);
+          }
         }
       } catch (err) {
-        console.error("Auth init error:", err);
-        if (isMounted) {
-          setUser(null);
-          setProfile(null);
-        }
-      } finally {
-        if (isMounted) setLoading(false);
+        console.error("Profile load exception:", err);
+        if (isMounted) setProfile(null);
       }
     };
 
-    // Listener for ONGOING auth changes — does NOT control loading
+    // Set up listener FIRST, before getSession
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      (_event, session) => {
         if (!isMounted) return;
-        
-        const currentUser = session?.user ?? null;
-        setUser(currentUser);
-        
-        if (currentUser) {
-          // Use setTimeout to avoid Supabase auth deadlock
-          setTimeout(() => {
-            if (isMounted) loadProfile(currentUser.id);
-          }, 0);
-        } else {
+
+        setUser(session?.user ?? null);
+
+        if (!session?.user) {
           setProfile(null);
+          return;
         }
+
+        // Defer Supabase call to avoid Navigator Lock deadlock
+        setTimeout(() => {
+          if (isMounted) {
+            loadProfile(session.user.id).then(() => {
+              if (isMounted) setLoading(false);
+            });
+          }
+        }, 0);
       }
     );
 
-    initializeAuth();
+    // Initial session check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!isMounted) return;
+
+      if (!session?.user) {
+        setUser(null);
+        setProfile(null);
+        setLoading(false);
+        return;
+      }
+
+      setUser(session.user);
+      loadProfile(session.user.id).then(() => {
+        if (isMounted) setLoading(false);
+      });
+    }).catch(() => {
+      if (isMounted) {
+        setUser(null);
+        setProfile(null);
+        setLoading(false);
+      }
+    });
 
     return () => {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [loadProfile]);
+  }, []);
 
   const signOut = async () => {
+    setUser(null);
+    setProfile(null);
     try {
       await supabase.auth.signOut();
     } catch {
-      // Ignore signOut errors (e.g. lock timeout)
+      // Ignore lock timeout errors
     }
-    setUser(null);
-    setProfile(null);
   };
 
   return (

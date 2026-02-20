@@ -20,27 +20,13 @@ const Login = () => {
     setError("");
     setLoading(true);
 
-    const { data, error: authError } = await supabase.auth.signInWithPassword({
+    const { error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (authError) {
       setError("Email ou senha inválidos.");
-      setLoading(false);
-      return;
-    }
-
-    // Check if user is active
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("ativo")
-      .eq("id", data.user.id)
-      .single();
-
-    if (!profile?.ativo) {
-      await supabase.auth.signOut();
-      setError("Seu acesso ainda não foi liberado. Aguarde a aprovação do administrador.");
       setLoading(false);
       return;
     }

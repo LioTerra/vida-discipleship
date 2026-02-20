@@ -26,28 +26,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
-    setProfile(data);
-  };
-
   useEffect(() => {
     let isMounted = true;
 
     const loadProfile = async (userId: string) => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
-      if (isMounted) setProfile(data);
+      try {
+        const { data } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .single();
+        if (isMounted) setProfile(data);
+      } catch {
+        if (isMounted) setProfile(null);
+      }
     };
 
-    // Listener for ongoing auth changes — does NOT control loading
+    // Listener for ONGOING auth changes — does NOT control loading
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (!isMounted) return;
@@ -60,7 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    // Initial load — controls loading state
+    // INITIAL load — controls loading state
     const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -68,6 +63,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session?.user ?? null);
         if (session?.user) {
           await loadProfile(session.user.id);
+        }
+      } catch {
+        // If getSession fails (e.g. lock timeout), still stop loading
+        if (isMounted) {
+          setUser(null);
+          setProfile(null);
         }
       } finally {
         if (isMounted) setLoading(false);
@@ -83,7 +84,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // Ignore signOut errors
+    }
     setUser(null);
     setProfile(null);
   };

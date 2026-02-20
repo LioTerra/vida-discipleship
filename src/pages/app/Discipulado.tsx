@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Heart, User } from "lucide-react";
+import MentorshipDetail from "@/components/discipulado/MentorshipDetail";
 
 const Discipulado = () => {
   const { user } = useAuth();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const { data: mentorships, isLoading } = useQuery({
     queryKey: ["my-mentorships"],
@@ -20,6 +23,20 @@ const Discipulado = () => {
     },
     enabled: !!user,
   });
+
+  const selected = mentorships?.find((m) => m.id === selectedId);
+
+  if (selected) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold">Discipulado</h1>
+          <p className="text-muted-foreground">Avaliação e acompanhamento</p>
+        </div>
+        <MentorshipDetail mentorship={selected} onBack={() => setSelectedId(null)} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -44,7 +61,11 @@ const Discipulado = () => {
           {mentorships.map((m) => {
             const isMentor = m.mentor_id === user!.id;
             return (
-              <Card key={m.id}>
+              <Card
+                key={m.id}
+                className="cursor-pointer hover:border-primary/50 transition-colors"
+                onClick={() => setSelectedId(m.id)}
+              >
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <User className="h-4 w-4 text-primary" />

@@ -20,6 +20,15 @@ const AppLayout = () => {
     return <Navigate to="/login" replace />;
   }
 
+  // Wait for profile to load before checking ativo
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   if (!profile?.ativo) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">

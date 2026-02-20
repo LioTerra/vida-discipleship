@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -26,46 +26,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const loadProfile = useCallback(async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+      if (error) {
+        console.error("Failed to load profile:", error.message);
+        setProfile(null);
+      } else {
+        setProfile(data);
+      }
+    } catch (err) {
+      console.error("Profile load exception:", err);
+      setProfile(null);
+    }
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
-
-    const loadProfile = async (userId: string) => {
-      try {
-        const { data } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", userId)
-          .single();
-        if (isMounted) setProfile(data);
-      } catch {
-        if (isMounted) setProfile(null);
-      }
-    };
-
-    // Listener for ONGOING auth changes — does NOT control loading
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!isMounted) return;
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          setTimeout(() => loadProfile(session.user.id), 0);
-        } else {
-          setProfile(null);
-        }
-      }
-    );
 
     // INITIAL load — controls loading state
     const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!isMounted) return;
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          await loadProfile(session.user.id);
+        
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        
+        if (currentUser) {
+          await loadProfile(currentUser.id);
         }
-      } catch {
-        // If getSession fails (e.g. lock timeout), still stop loading
+      } catch (err) {
+        console.error("Auth init error:", err);
         if (isMounted) {
           setUser(null);
           setProfile(null);
@@ -75,19 +71,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
+    // Listener for ONGOING auth changes — does NOT control loading
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (!isMounted) return;
+        
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        
+        if (currentUser) {
+          // Use setTimeout to avoid Supabase auth deadlock
+          setTimeout(() => {
+            if (isMounted) loadProfile(currentUser.id);
+          }, 0);
+        } else {
+          setProfile(null);
+        }
+      }
+    );
+
     initializeAuth();
 
     return () => {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [loadProfile]);
 
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
     } catch {
-      // Ignore signOut errors
+      // Ignore signOut errors (e.g. lock timeout)
     }
     setUser(null);
     setProfile(null);

@@ -8,34 +8,41 @@ import { Users2, User, BookOpen, Star, ChevronRight, ArrowLeft } from "lucide-re
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AvaliacaoForm from "@/components/discipulado/AvaliacaoForm";
 import AvaliacaoHistorico from "@/components/discipulado/AvaliacaoHistorico";
+
+type MentorshipStatus = "ativo" | "pausado" | "concluido" | "todos";
 
 const MeusDiscipulos = () => {
   const { user, profile } = useAuth();
   const [selectedMentorship, setSelectedMentorship] = useState<any>(null);
+  const [statusFilter, setStatusFilter] = useState<MentorshipStatus>("todos");
 
   if (profile?.role !== "staff" && profile?.role !== "admin") {
     return <Navigate to="/app/inicio" replace />;
   }
 
-  const { data: mentorships, isLoading } = useQuery({
-    queryKey: ["my-mentees"],
+  const { data: allMentorships, isLoading } = useQuery({
+    queryKey: ["my-mentees-all"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("mentorships")
         .select("*, mentee:profiles!mentorships_mentee_id_fkey(id, nome, email)")
-        .eq("mentor_id", user!.id)
-        .eq("status", "ativo");
+        .eq("mentor_id", user!.id);
       if (error) throw error;
       return data;
     },
     enabled: !!user,
   });
 
+  const mentorships = allMentorships?.filter(
+    (m) => statusFilter === "todos" || m.status === statusFilter
+  );
+
   // Fetch all mentee IDs for batch queries
-  const menteeIds = mentorships?.map((m) => (m.mentee as any)?.id).filter(Boolean) ?? [];
-  const mentorshipIds = mentorships?.map((m) => m.id) ?? [];
+  const menteeIds = allMentorships?.map((m) => (m.mentee as any)?.id).filter(Boolean) ?? [];
+  const mentorshipIds = allMentorships?.map((m) => m.id) ?? [];
 
   // Fetch progress for all mentees
   const { data: progressData } = useQuery({
@@ -138,9 +145,19 @@ const MeusDiscipulos = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Meus Discípulos</h1>
-        <p className="text-muted-foreground">Mentorados atribuídos a você</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Meus Discípulos</h1>
+          <p className="text-muted-foreground">Mentorados atribuídos a você</p>
+        </div>
+        <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as MentorshipStatus)}>
+          <TabsList>
+            <TabsTrigger value="todos">Todos</TabsTrigger>
+            <TabsTrigger value="ativo">Ativos</TabsTrigger>
+            <TabsTrigger value="pausado">Pausados</TabsTrigger>
+            <TabsTrigger value="concluido">Concluídos</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       {isLoading ? (

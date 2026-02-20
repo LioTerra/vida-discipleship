@@ -152,10 +152,10 @@ const MeusDiscipulos = () => {
         </div>
         <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as MentorshipStatus)}>
           <TabsList>
-            <TabsTrigger value="todos">Todos</TabsTrigger>
-            <TabsTrigger value="ativo">Ativos</TabsTrigger>
-            <TabsTrigger value="pausado">Pausados</TabsTrigger>
-            <TabsTrigger value="concluido">Concluídos</TabsTrigger>
+            <TabsTrigger value="todos">Todos ({allMentorships?.length ?? 0})</TabsTrigger>
+            <TabsTrigger value="ativo">Ativos ({allMentorships?.filter(m => m.status === "ativo").length ?? 0})</TabsTrigger>
+            <TabsTrigger value="pausado">Pausados ({allMentorships?.filter(m => m.status === "pausado").length ?? 0})</TabsTrigger>
+            <TabsTrigger value="concluido">Concluídos ({allMentorships?.filter(m => m.status === "concluido").length ?? 0})</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>

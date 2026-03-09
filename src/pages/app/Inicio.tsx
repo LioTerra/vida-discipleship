@@ -1,11 +1,30 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Calendar, Heart, GraduationCap } from "lucide-react";
+import { BookOpen, Calendar, Heart, GraduationCap, AlertCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 const Inicio = () => {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
+  const isAdmin = profile?.role === "admin";
+
+  // Admin: pending users count
+  const { data: pendingCount } = useQuery({
+    queryKey: ["pending-users-count"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .eq("ativo", false);
+      return count ?? 0;
+    },
+    enabled: isAdmin,
+    refetchInterval: 30000,
+  });
 
   // 1. Aulas concluídas pelo usuário logado
   const { data: aulasCount } = useQuery({
@@ -116,6 +135,18 @@ const Inicio = () => {
 
   return (
     <div className="space-y-6">
+      {isAdmin && !!pendingCount && pendingCount > 0 && (
+        <Alert className="border-primary/50 bg-primary/10">
+          <AlertCircle className="h-4 w-4 text-primary" />
+          <AlertDescription className="flex items-center justify-between w-full">
+            <span>{pendingCount} pessoa(s) aguardando liberação de acesso.</span>
+            <Button size="sm" variant="outline" onClick={() => navigate("/app/usuarios")}>
+              Ver pendentes
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div>
         <h1 className="text-2xl font-bold">
           Olá, {profile?.nome?.split(" ")[0]} 👋

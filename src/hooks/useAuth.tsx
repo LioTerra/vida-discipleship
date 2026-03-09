@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       toast({ title: message, variant: "destructive" });
     }
     navigate("/login", { replace: true });
-    signingOut.current = false;
+    setTimeout(() => { signingOut.current = false; }, 500);
   };
 
   const loadAndCheckProfile = async (userId: string, skipAtivoCheck = false): Promise<Profile | null> => {
@@ -57,20 +57,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (error || !data) {
         if (!skipAtivoCheck) {
-          await forceSignOut("Seu acesso foi desativado. Entre em contato com o administrador.");
+          await forceSignOut("Seu acesso ainda não foi liberado. Aguarde a confirmação do administrador.");
         }
         return null;
       }
 
       if (!data.ativo && !skipAtivoCheck) {
-        await forceSignOut("Seu acesso foi desativado. Entre em contato com o administrador.");
+        await forceSignOut("Seu acesso ainda não foi liberado. Aguarde a confirmação do administrador.");
         return null;
       }
 
       return data;
     } catch {
       if (!skipAtivoCheck) {
-        await forceSignOut("Seu acesso foi desativado. Entre em contato com o administrador.");
+        await forceSignOut("Seu acesso ainda não foi liberado. Aguarde a confirmação do administrador.");
       }
       return null;
     }

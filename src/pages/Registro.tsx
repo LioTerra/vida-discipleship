@@ -36,7 +36,7 @@ const Registro = () => {
       password,
       options: {
         data: { nome, telefone },
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: window.location.origin + "/login",
       },
     });
 

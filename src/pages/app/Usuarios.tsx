@@ -214,7 +214,7 @@ const Usuarios = () => {
                       <TableCell>
                         <Switch
                           checked={u.ativo ?? false}
-                          onCheckedChange={(ativo) => handleToggleAtivo(u.id, ativo)}
+                          onCheckedChange={(ativo) => handleToggleAtivo(u.id, u.nome, ativo)}
                         />
                       </TableCell>
                     </TableRow>

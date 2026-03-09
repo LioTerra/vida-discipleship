@@ -55,7 +55,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .eq("id", userId)
         .maybeSingle();
 
-      if (error || !data) {
+      if (error) {
+        // Network/RLS error — don't force sign out, just return null
+        console.warn("Profile fetch error:", error.message);
+        return null;
+      }
+
+      if (!data) {
+        // Profile not yet created (new user awaiting admin approval)
         if (!skipAtivoCheck) {
           await forceSignOut("Seu acesso ainda não foi liberado. Aguarde a confirmação do administrador.");
         }
@@ -69,9 +76,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       return data;
     } catch {
-      if (!skipAtivoCheck) {
-        await forceSignOut("Seu acesso ainda não foi liberado. Aguarde a confirmação do administrador.");
-      }
+      // Network failure — don't force sign out
+      console.warn("Profile fetch failed (network)");
       return null;
     }
   };

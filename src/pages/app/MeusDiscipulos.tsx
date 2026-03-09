@@ -186,7 +186,7 @@ const MeusDiscipulos = () => {
             const pct = getMenteeProgress(mentee?.id);
             const latestEval = latestAvaliacoes?.[m.id];
             const avg = getAvgScore(latestEval);
-            const isNewFormat = latestEval?.seguranca != null || latestEval?.sensibilidade != null;
+            const isNewFormat = (latestEval as any)?.seguranca != null || (latestEval as any)?.sensibilidade != null;
 
             return (
               <Card

@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signingOut.current = false;
   };
 
-  const loadAndCheckProfile = async (userId: string): Promise<Profile | null> => {
+  const loadAndCheckProfile = async (userId: string, skipAtivoCheck = false): Promise<Profile | null> => {
     try {
       const { data, error } = await supabase
         .from("profiles")
@@ -56,18 +56,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .maybeSingle();
 
       if (error || !data) {
-        await forceSignOut("Seu acesso foi desativado. Entre em contato com o administrador.");
+        if (!skipAtivoCheck) {
+          await forceSignOut("Seu acesso foi desativado. Entre em contato com o administrador.");
+        }
         return null;
       }
 
-      if (!data.ativo) {
+      if (!data.ativo && !skipAtivoCheck) {
         await forceSignOut("Seu acesso foi desativado. Entre em contato com o administrador.");
         return null;
       }
 
       return data;
     } catch {
-      await forceSignOut("Seu acesso foi desativado. Entre em contato com o administrador.");
+      if (!skipAtivoCheck) {
+        await forceSignOut("Seu acesso foi desativado. Entre em contato com o administrador.");
+      }
       return null;
     }
   };

@@ -13,8 +13,10 @@ import type { Tables } from "@/integrations/supabase/types";
 type Curso = Tables<"cursos">;
 
 const Ensino = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [cursoAberto, setCursoAberto] = useState<Curso | null>(null);
+  const [gerenciando, setGerenciando] = useState(false);
+  const isStaffOrAdmin = profile?.role === "admin" || profile?.role === "staff";
 
   const { data: cursos, isLoading } = useQuery({
     queryKey: ["cursos"],

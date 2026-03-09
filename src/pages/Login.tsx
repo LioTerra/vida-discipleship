@@ -56,7 +56,7 @@ const Login = () => {
     e.preventDefault();
     if (isLockedOut) return;
     setError("");
-    setLoading(true);
+    if (blocked) setSearchParams({}, { replace: true });
 
     const { error: authError } = await supabase.auth.signInWithPassword({
       email,

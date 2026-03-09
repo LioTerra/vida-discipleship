@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
+import { OfflineBanner } from "@/components/OfflineBanner";
 import Login from "./pages/Login";
 import Registro from "./pages/Registro";
 import EsqueciSenha from "./pages/EsqueciSenha";
@@ -24,6 +26,8 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <OfflineBanner />
+      <PwaInstallPrompt />
       <BrowserRouter>
         <AuthProvider>
           <Routes>

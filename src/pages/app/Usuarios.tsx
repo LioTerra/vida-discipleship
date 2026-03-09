@@ -59,11 +59,7 @@ const Usuarios = () => {
     });
   }, [users, search, roleFilter, statusFilter]);
 
-  const isSelf = (id: string) => id === profile?.id;
-
-  if (profile?.role !== "admin") {
-    return <Navigate to="/app/inicio" replace />;
-  }
+  const isSelf = useCallback((id: string) => id === profile?.id, [profile?.id]);
 
   const toggleAtivo = useMutation({
     mutationFn: async ({ id, ativo }: { id: string; ativo: boolean }) => {
@@ -99,20 +95,23 @@ const Usuarios = () => {
       return;
     }
     if (!ativo) {
-      // Deactivating: show confirmation
       setConfirmDeactivate({ id, nome });
     } else {
-      // Activating: no confirmation needed
       toggleAtivo.mutate({ id, ativo });
     }
-  }, [profile?.id]);
+  }, [isSelf, toggleAtivo]);
 
-  const handleChangeRole = (id: string, role: string) => {
+  const handleChangeRole = useCallback((id: string, role: string) => {
     if (isSelf(id)) {
       toast({ title: "Você não pode alterar sua própria conta.", variant: "destructive" });
       return;
     }
     changeRole.mutate({ id, role });
+  }, [isSelf, changeRole]);
+
+  if (profile?.role !== "admin") {
+    return <Navigate to="/app/inicio" replace />;
+  }
   };
 
   return (

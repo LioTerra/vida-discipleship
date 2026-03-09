@@ -143,7 +143,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user || loading || signingOut.current) return;
     if (PUBLIC_ROUTES.includes(location.pathname)) return;
 
-    loadAndCheckProfile(user.id).then((p) => {
+    const skipAtivo = SKIP_ATIVO_CHECK_ROUTES.some((r) => location.pathname.startsWith(r));
+    loadAndCheckProfile(user.id, skipAtivo).then((p) => {
       if (!signingOut.current) {
         setProfile(p);
       }

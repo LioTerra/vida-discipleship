@@ -61,39 +61,78 @@ export type Database = {
       avaliacoes: {
         Row: {
           author_id: string
+          capacidade: number | null
+          capacidade_evidencia: string | null
           comunhao: number | null
           created_at: string | null
+          desafio_semana: string | null
           devocional: number | null
           evangelismo: number | null
+          fidelidade: number | null
+          fidelidade_evidencia: string | null
           id: string
+          influencia: number | null
+          influencia_evidencia: string | null
           mentorship_id: string
           observacoes: string | null
           oracao: number | null
+          pedido_oracao: string | null
+          seguranca: number | null
+          seguranca_evidencia: string | null
           semana: string
+          sensibilidade: number | null
+          sensibilidade_evidencia: string | null
+          vitoria_semana: string | null
         }
         Insert: {
           author_id: string
+          capacidade?: number | null
+          capacidade_evidencia?: string | null
           comunhao?: number | null
           created_at?: string | null
+          desafio_semana?: string | null
           devocional?: number | null
           evangelismo?: number | null
+          fidelidade?: number | null
+          fidelidade_evidencia?: string | null
           id?: string
+          influencia?: number | null
+          influencia_evidencia?: string | null
           mentorship_id: string
           observacoes?: string | null
           oracao?: number | null
+          pedido_oracao?: string | null
+          seguranca?: number | null
+          seguranca_evidencia?: string | null
           semana: string
+          sensibilidade?: number | null
+          sensibilidade_evidencia?: string | null
+          vitoria_semana?: string | null
         }
         Update: {
           author_id?: string
+          capacidade?: number | null
+          capacidade_evidencia?: string | null
           comunhao?: number | null
           created_at?: string | null
+          desafio_semana?: string | null
           devocional?: number | null
           evangelismo?: number | null
+          fidelidade?: number | null
+          fidelidade_evidencia?: string | null
           id?: string
+          influencia?: number | null
+          influencia_evidencia?: string | null
           mentorship_id?: string
           observacoes?: string | null
           oracao?: number | null
+          pedido_oracao?: string | null
+          seguranca?: number | null
+          seguranca_evidencia?: string | null
           semana?: string
+          sensibilidade?: number | null
+          sensibilidade_evidencia?: string | null
+          vitoria_semana?: string | null
         }
         Relationships: [
           {

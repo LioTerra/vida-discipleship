@@ -277,6 +277,69 @@ export default function GerenciarConteudo({ onVoltar }: Props) {
     onError: () => toast({ title: "Erro ao excluir", variant: "destructive" }),
   });
 
+  // ── Duplicate curso mutation ──
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
+  const duplicateCurso = useMutation({
+    mutationFn: async (cursoId: string) => {
+      setDuplicatingId(cursoId);
+      // Fetch original curso
+      const { data: original, error: cErr } = await supabase.from("cursos").select("*").eq("id", cursoId).single();
+      if (cErr) throw cErr;
+
+      // Create copy
+      const nextOrdem = (cursos?.length ?? 0);
+      const { data: newCurso, error: ncErr } = await supabase.from("cursos").insert({
+        titulo: `${original.titulo} (cópia)`,
+        descricao: original.descricao,
+        ativo: false,
+        ordem: nextOrdem,
+      }).select().single();
+      if (ncErr) throw ncErr;
+
+      // Fetch and copy módulos
+      const { data: origModulos, error: mErr } = await supabase.from("modulos").select("*").eq("curso_id", cursoId).order("ordem");
+      if (mErr) throw mErr;
+
+      for (const mod of origModulos ?? []) {
+        const { data: newMod, error: nmErr } = await supabase.from("modulos").insert({
+          curso_id: newCurso.id,
+          titulo: mod.titulo,
+          descricao: mod.descricao,
+          ordem: mod.ordem,
+        }).select().single();
+        if (nmErr) throw nmErr;
+
+        // Fetch and copy aulas for this módulo
+        const { data: origAulas, error: aErr } = await supabase.from("aulas").select("*").eq("modulo_id", mod.id).order("ordem");
+        if (aErr) throw aErr;
+
+        if (origAulas?.length) {
+          const { error: naErr } = await supabase.from("aulas").insert(
+            origAulas.map((a) => ({
+              modulo_id: newMod.id,
+              titulo: a.titulo,
+              tipo: a.tipo,
+              url: a.url,
+              conteudo_texto: a.conteudo_texto,
+              duracao_min: a.duracao_min,
+              ordem: a.ordem,
+            }))
+          );
+          if (naErr) throw naErr;
+        }
+      }
+    },
+    onSuccess: () => {
+      setDuplicatingId(null);
+      invalidateAll();
+      toast({ title: "Curso duplicado com sucesso!" });
+    },
+    onError: () => {
+      setDuplicatingId(null);
+      toast({ title: "Erro ao duplicar curso", variant: "destructive" });
+    },
+  });
+
   // ── Open dialogs with pre-fill ──
   const openCursoDialog = (curso?: Curso) => {
     resetForm();

@@ -3,17 +3,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BookOpen, ChevronRight, Settings } from "lucide-react";
+import { BookOpen, ChevronRight, Settings, Plus, Loader2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useState } from "react";
 import CursoDetalhe from "@/components/ensino/CursoDetalhe";
 import GerenciarConteudo from "@/components/ensino/GerenciarConteudo";
+import { toast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Curso = Tables<"cursos">;
 
 const Ensino = () => {
   const { user, profile } = useAuth();
+  const queryClient = useQueryClient();
   const [cursoAberto, setCursoAberto] = useState<Curso | null>(null);
   const [gerenciando, setGerenciando] = useState(false);
   const isStaffOrAdmin = profile?.role === "admin" || profile?.role === "staff";
@@ -67,6 +69,61 @@ const Ensino = () => {
     return Math.round((concluidas / aulasDoCurso.length) * 100);
   };
 
+  // Fetch all cursos (including inactive) to check if any exist
+  const { data: allCursosCount } = useQuery({
+    queryKey: ["all-cursos-count"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("cursos")
+        .select("*", { count: "exact", head: true });
+      return count ?? 0;
+    },
+    enabled: isStaffOrAdmin,
+  });
+
+  const seedMutation = useMutation({
+    mutationFn: async () => {
+      // Create curso
+      const { data: curso, error: cursoErr } = await supabase
+        .from("cursos")
+        .insert({ titulo: "Fundamentos do Discipulado", descricao: "Curso introdutório sobre os fundamentos do discipulado cristão.", created_by: user!.id, ordem: 1 })
+        .select()
+        .single();
+      if (cursoErr) throw cursoErr;
+
+      // Create módulos
+      const { data: modulos, error: modErr } = await supabase
+        .from("modulos")
+        .insert([
+          { curso_id: curso.id, titulo: "Contemplar", ordem: 1 },
+          { curso_id: curso.id, titulo: "Identidade em Cristo", ordem: 2 },
+        ])
+        .select();
+      if (modErr) throw modErr;
+
+      const mod1 = modulos.find((m) => m.ordem === 1)!;
+      const mod2 = modulos.find((m) => m.ordem === 2)!;
+
+      // Create aulas
+      const { error: aulasErr } = await supabase.from("aulas").insert([
+        { modulo_id: mod1.id, titulo: "Introdução à Contemplação", tipo: "video" as const, url: "https://www.youtube.com/watch?v=example", ordem: 1 },
+        { modulo_id: mod1.id, titulo: "O significado de Nabat e Proskuneo", tipo: "texto" as const, conteudo_texto: "Texto introdutório sobre contemplação bíblica.", ordem: 2 },
+        { modulo_id: mod2.id, titulo: "Filho, não Órfão", tipo: "video" as const, url: "https://www.youtube.com/watch?v=example", ordem: 1 },
+        { modulo_id: mod2.id, titulo: "A Autoridade do Crente", tipo: "texto" as const, conteudo_texto: "Texto sobre identidade e autoridade espiritual.", ordem: 2 },
+      ]);
+      if (aulasErr) throw aulasErr;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cursos"] });
+      queryClient.invalidateQueries({ queryKey: ["all-cursos-count"] });
+      queryClient.invalidateQueries({ queryKey: ["aulas-por-curso"] });
+      toast({ title: "Conteúdo de exemplo criado com sucesso!" });
+    },
+    onError: (err: any) => {
+      toast({ title: "Erro ao criar conteúdo", description: err.message, variant: "destructive" });
+    },
+  });
+
   if (gerenciando && isStaffOrAdmin) {
     return <GerenciarConteudo onVoltar={() => setGerenciando(false)} />;
   }
@@ -93,9 +150,15 @@ const Ensino = () => {
         <p className="text-muted-foreground">Carregando cursos...</p>
       ) : !cursos?.length ? (
         <Card>
-          <CardContent className="py-12 text-center">
-            <BookOpen className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+          <CardContent className="py-12 text-center space-y-4">
+            <BookOpen className="mx-auto h-12 w-12 text-muted-foreground" />
             <p className="text-muted-foreground">Nenhum curso disponível ainda.</p>
+            {isStaffOrAdmin && allCursosCount === 0 && (
+              <Button onClick={() => seedMutation.mutate()} disabled={seedMutation.isPending} className="gap-2">
+                {seedMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                Criar Conteúdo de Exemplo
+              </Button>
+            )}
           </CardContent>
         </Card>
       ) : (

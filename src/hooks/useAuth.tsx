@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (message) {
       toast({ title: message, variant: "destructive" });
     }
-    navigate("/login", { replace: true });
+    navigate("/login?blocked=1", { replace: true });
     setTimeout(() => { signingOut.current = false; }, 500);
   };
 

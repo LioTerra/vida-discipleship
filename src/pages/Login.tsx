@@ -100,6 +100,15 @@ const Login = () => {
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
+            {blocked && (
+              <Alert className="border-yellow-600/50 bg-yellow-950/30 text-yellow-200">
+                <ShieldAlert className="h-4 w-4 !text-yellow-400" />
+                <AlertDescription className="text-yellow-200">
+                  Seu acesso ainda não foi liberado. Aguarde a confirmação do administrador.
+                </AlertDescription>
+              </Alert>
+            )}
+
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>

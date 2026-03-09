@@ -13,13 +13,22 @@ const Registro = () => {
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const passwordMismatch = confirmPassword.length > 0 && password !== confirmPassword;
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (password !== confirmPassword) {
+      setError("As senhas não coincidem.");
+      return;
+    }
+
     setLoading(true);
 
     const { error: authError } = await supabase.auth.signUp({
@@ -127,6 +136,23 @@ const Registro = () => {
                 required
                 minLength={6}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirmar senha</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="Repita a senha"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                minLength={6}
+                className={passwordMismatch ? "border-destructive" : ""}
+              />
+              {passwordMismatch && (
+                <p className="text-sm text-destructive">As senhas não coincidem.</p>
+              )}
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>

@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,7 +12,9 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
+import { Search, Users } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import MentoriasTab from "@/components/admin/MentoriasTab";
 
@@ -20,10 +23,9 @@ type Profile = Tables<"profiles">;
 const Usuarios = () => {
   const { profile } = useAuth();
   const queryClient = useQueryClient();
-
-  if (profile?.role !== "admin") {
-    return <Navigate to="/app/inicio" replace />;
-  }
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("todos");
+  const [statusFilter, setStatusFilter] = useState("todos");
 
   const { data: users, isLoading } = useQuery({
     queryKey: ["all-users"],
@@ -35,7 +37,26 @@ const Usuarios = () => {
       if (error) throw error;
       return data as Profile[];
     },
+    enabled: profile?.role === "admin",
   });
+
+  const filteredUsers = useMemo(() => {
+    if (!users) return [];
+    return users.filter((u) => {
+      const q = search.toLowerCase();
+      const matchesSearch = !q || u.nome.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+      const matchesRole = roleFilter === "todos" || u.role === roleFilter;
+      const matchesStatus =
+        statusFilter === "todos" ||
+        (statusFilter === "ativo" && u.ativo) ||
+        (statusFilter === "pendente" && !u.ativo);
+      return matchesSearch && matchesRole && matchesStatus;
+    });
+  }, [users, search, roleFilter, statusFilter]);
+
+  if (profile?.role !== "admin") {
+    return <Navigate to="/app/inicio" replace />;
+  }
 
   const isSelf = (id: string) => id === profile?.id;
 
@@ -93,7 +114,49 @@ const Usuarios = () => {
           <TabsTrigger value="mentorias">Mentorias</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="usuarios" className="mt-4">
+        <TabsContent value="usuarios" className="mt-4 space-y-4">
+          {/* Search & Filter Bar */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nome ou email..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <SelectTrigger className="w-full sm:w-36">
+                <SelectValue placeholder="Role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todas roles</SelectItem>
+                <SelectItem value="user">Usuário</SelectItem>
+                <SelectItem value="staff">Staff</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-36">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos status</SelectItem>
+                <SelectItem value="ativo">Ativo</SelectItem>
+                <SelectItem value="pendente">Pendente</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Count Badge */}
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-muted-foreground" />
+            <Badge variant="secondary" className="font-normal">
+              {filteredUsers.length} usuário{filteredUsers.length !== 1 ? "s" : ""} encontrado{filteredUsers.length !== 1 ? "s" : ""}
+            </Badge>
+          </div>
+
           <div className="rounded-lg border border-border">
             <Table>
               <TableHeader>
@@ -111,8 +174,14 @@ const Usuarios = () => {
                       Carregando...
                     </TableCell>
                   </TableRow>
+                ) : filteredUsers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                      Nenhum usuário encontrado.
+                    </TableCell>
+                  </TableRow>
                 ) : (
-                  users?.map((u) => (
+                  filteredUsers.map((u) => (
                     <TableRow key={u.id}>
                       <TableCell className="font-medium">{u.nome}</TableCell>
                       <TableCell className="text-muted-foreground">{u.email}</TableCell>

@@ -157,8 +157,8 @@ const MeusDiscipulos = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Meus Discípulos</h1>
-          <p className="text-muted-foreground">Mentorados atribuídos a você</p>
+          <h1 className="text-2xl font-bold">{isAdmin ? "Todos os Discipulados" : "Meus Discípulos"}</h1>
+          <p className="text-muted-foreground">{isAdmin ? "Visão geral de todos os mentorados" : "Mentorados atribuídos a você"}</p>
         </div>
         <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as MentorshipStatus)}>
           <TabsList>

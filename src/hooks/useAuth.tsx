@@ -1,6 +1,8 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useRef, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate, useLocation } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Profile = Tables<"profiles">;
@@ -21,59 +23,81 @@ const AuthContext = createContext<AuthContextType>({
 
 export const useAuth = () => useContext(AuthContext);
 
+const PUBLIC_ROUTES = ["/login", "/registro"];
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const signingOut = useRef(false);
+
+  const forceSignOut = async (message?: string) => {
+    if (signingOut.current) return;
+    signingOut.current = true;
+    setUser(null);
+    setProfile(null);
+    try { await supabase.auth.signOut(); } catch {}
+    if (message) {
+      toast({ title: message, variant: "destructive" });
+    }
+    navigate("/login", { replace: true });
+    signingOut.current = false;
+  };
+
+  const loadAndCheckProfile = async (userId: string): Promise<Profile | null> => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (error || !data) {
+        await forceSignOut("Seu acesso foi desativado. Entre em contato com o administrador.");
+        return null;
+      }
+
+      if (!data.ativo) {
+        await forceSignOut("Seu acesso foi desativado. Entre em contato com o administrador.");
+        return null;
+      }
+
+      return data;
+    } catch {
+      await forceSignOut("Seu acesso foi desativado. Entre em contato com o administrador.");
+      return null;
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
 
-    const loadProfile = async (userId: string) => {
-      try {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", userId)
-          .maybeSingle();
-        if (isMounted) {
-          if (error) {
-            console.error("Profile load error:", error.message);
-            setProfile(null);
-          } else {
-            setProfile(data);
-          }
-        }
-      } catch (err) {
-        console.error("Profile load exception:", err);
-        if (isMounted) setProfile(null);
-      }
-    };
-
-    // Set up listener FIRST, before getSession
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        if (!isMounted) return;
+        if (!isMounted || signingOut.current) return;
 
         setUser(session?.user ?? null);
 
         if (!session?.user) {
           setProfile(null);
+          setLoading(false);
           return;
         }
 
-        // Defer Supabase call to avoid Navigator Lock deadlock
         setTimeout(() => {
-          if (isMounted) {
-            loadProfile(session.user.id).then(() => {
-              if (isMounted) setLoading(false);
-            });
-          }
+          if (!isMounted || signingOut.current) return;
+          loadAndCheckProfile(session.user.id).then((p) => {
+            if (isMounted && !signingOut.current) {
+              setProfile(p);
+              setLoading(false);
+            }
+          });
         }, 0);
       }
     );
 
-    // Initial session check
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!isMounted) return;
 
@@ -85,8 +109,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       setUser(session.user);
-      loadProfile(session.user.id).then(() => {
-        if (isMounted) setLoading(false);
+      loadAndCheckProfile(session.user.id).then((p) => {
+        if (isMounted) {
+          setProfile(p);
+          setLoading(false);
+        }
       });
     }).catch(() => {
       if (isMounted) {
@@ -102,14 +129,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
+  // Re-check profile.ativo on every route change
+  useEffect(() => {
+    if (!user || loading || signingOut.current) return;
+    if (PUBLIC_ROUTES.includes(location.pathname)) return;
+
+    loadAndCheckProfile(user.id).then((p) => {
+      if (!signingOut.current) {
+        setProfile(p);
+      }
+    });
+  }, [location.pathname]);
+
   const signOut = async () => {
-    setUser(null);
-    setProfile(null);
-    try {
-      await supabase.auth.signOut();
-    } catch {
-      // Ignore lock timeout errors
-    }
+    await forceSignOut();
   };
 
   return (

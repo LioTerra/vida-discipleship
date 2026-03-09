@@ -91,9 +91,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
 
+        const skipAtivo = SKIP_ATIVO_CHECK_ROUTES.some((r) => window.location.pathname.startsWith(r));
+
         setTimeout(() => {
           if (!isMounted || signingOut.current) return;
-          loadAndCheckProfile(session.user.id).then((p) => {
+          loadAndCheckProfile(session.user.id, skipAtivo).then((p) => {
             if (isMounted && !signingOut.current) {
               setProfile(p);
               setLoading(false);
@@ -113,8 +115,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
+      const skipAtivo = SKIP_ATIVO_CHECK_ROUTES.some((r) => window.location.pathname.startsWith(r));
+
       setUser(session.user);
-      loadAndCheckProfile(session.user.id).then((p) => {
+      loadAndCheckProfile(session.user.id, skipAtivo).then((p) => {
         if (isMounted) {
           setProfile(p);
           setLoading(false);

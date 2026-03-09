@@ -1,33 +1,28 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Star } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Progress } from "@/components/ui/progress";
+import { Trophy, Flame, Heart } from "lucide-react";
 
 interface AvaliacaoHistoricoProps {
   mentorshipId: string;
 }
 
 const CATEGORIAS = [
-  { key: "devocional", label: "Devocional" },
-  { key: "oracao", label: "Oração" },
-  { key: "comunhao", label: "Comunhão" },
-  { key: "evangelismo", label: "Evangelismo" },
+  { key: "seguranca", label: "Segurança" },
+  { key: "sensibilidade", label: "Sensibilidade" },
+  { key: "capacidade", label: "Capacidade" },
+  { key: "fidelidade", label: "Fidelidade" },
+  { key: "influencia", label: "Influência" },
 ] as const;
 
-const Stars = ({ value }: { value: number | null }) => (
-  <div className="flex gap-0.5">
-    {[1, 2, 3, 4, 5].map((n) => (
-      <Star
-        key={n}
-        className={cn(
-          "h-3.5 w-3.5",
-          value && n <= value
-            ? "fill-primary text-primary"
-            : "text-muted-foreground/30"
-        )}
-      />
-    ))}
+const ScoreBar = ({ value, label }: { value: number | null; label: string }) => (
+  <div className="space-y-1">
+    <div className="flex items-center justify-between text-xs">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-semibold text-foreground">{value ?? "—"}/10</span>
+    </div>
+    <Progress value={value != null ? value * 10 : 0} className="h-1.5" />
   </div>
 );
 
@@ -51,36 +46,86 @@ export default function AvaliacaoHistorico({ mentorshipId }: AvaliacaoHistoricoP
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-semibold text-muted-foreground">Histórico de Avaliações</h3>
-      {avaliacoes.map((av) => (
-        <Card key={av.id} className="bg-muted/30">
-          <CardHeader className="py-3 px-4">
-            <CardTitle className="text-sm flex items-center justify-between">
-              <span>
-                Semana: {new Date(av.semana + "T00:00:00").toLocaleDateString("pt-BR")}
-              </span>
-              <span className="text-xs text-muted-foreground font-normal">
-                por {(av.author as any)?.nome}
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 pb-3 pt-0">
-            <div className="grid grid-cols-2 gap-2">
-              {CATEGORIAS.map((cat) => (
-                <div key={cat.key} className="flex items-center justify-between gap-2">
-                  <span className="text-xs text-muted-foreground">{cat.label}</span>
-                  <Stars value={(av as any)[cat.key]} />
-                </div>
-              ))}
-            </div>
-            {av.observacoes && (
-              <p className="text-xs text-muted-foreground mt-2 italic">
-                "{av.observacoes}"
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      ))}
+      <h3 className="text-sm font-semibold text-muted-foreground">Histórico — Pulso de Vida</h3>
+      {avaliacoes.map((av: any) => {
+        const hasNewFormat = av.seguranca != null || av.sensibilidade != null;
+
+        return (
+          <Card key={av.id} className="bg-muted/30">
+            <CardHeader className="py-3 px-4">
+              <CardTitle className="text-sm flex items-center justify-between">
+                <span>
+                  Semana: {new Date(av.semana + "T00:00:00").toLocaleDateString("pt-BR")}
+                </span>
+                <span className="text-xs text-muted-foreground font-normal">
+                  por {av.author?.nome}
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-3 pt-0 space-y-3">
+              {hasNewFormat ? (
+                <>
+                  <div className="space-y-2">
+                    {CATEGORIAS.map((cat) => (
+                      <div key={cat.key}>
+                        <ScoreBar value={av[cat.key]} label={cat.label} />
+                        {av[`${cat.key}_evidencia`] && (
+                          <p className="text-xs text-muted-foreground mt-0.5 italic pl-1">
+                            "{av[`${cat.key}_evidencia`]}"
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {(av.vitoria_semana || av.desafio_semana || av.pedido_oracao) && (
+                    <div className="space-y-1.5 pt-2 border-t">
+                      {av.vitoria_semana && (
+                        <p className="text-xs flex items-center gap-1.5">
+                          <Trophy className="h-3 w-3 text-yellow-500 shrink-0" />
+                          <span className="text-muted-foreground">{av.vitoria_semana}</span>
+                        </p>
+                      )}
+                      {av.desafio_semana && (
+                        <p className="text-xs flex items-center gap-1.5">
+                          <Flame className="h-3 w-3 text-orange-500 shrink-0" />
+                          <span className="text-muted-foreground">{av.desafio_semana}</span>
+                        </p>
+                      )}
+                      {av.pedido_oracao && (
+                        <p className="text-xs flex items-center gap-1.5">
+                          <Heart className="h-3 w-3 text-red-500 shrink-0" />
+                          <span className="text-muted-foreground">{av.pedido_oracao}</span>
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </>
+              ) : (
+                /* Fallback for old format entries */
+                <>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    {[
+                      { key: "devocional", label: "Devocional" },
+                      { key: "oracao", label: "Oração" },
+                      { key: "comunhao", label: "Comunhão" },
+                      { key: "evangelismo", label: "Evangelismo" },
+                    ].map((cat) => (
+                      <div key={cat.key} className="flex items-center justify-between">
+                        <span className="text-muted-foreground">{cat.label}</span>
+                        <span className="font-medium">{av[cat.key] ?? "—"}/5</span>
+                      </div>
+                    ))}
+                  </div>
+                  {av.observacoes && (
+                    <p className="text-xs text-muted-foreground italic">"{av.observacoes}"</p>
+                  )}
+                </>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }

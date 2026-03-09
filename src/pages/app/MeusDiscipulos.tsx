@@ -98,10 +98,18 @@ const MeusDiscipulos = () => {
 
   const getAvgScore = (eval_: any) => {
     if (!eval_) return null;
-    const scores = [eval_.devocional, eval_.oracao, eval_.comunhao, eval_.evangelismo].filter(
+    // Try new Pulso de Vida format first
+    const newScores = [eval_.seguranca, eval_.sensibilidade, eval_.capacidade, eval_.fidelidade, eval_.influencia].filter(
       (s) => s != null
     );
-    return scores.length > 0 ? (scores.reduce((a: number, b: number) => a + b, 0) / scores.length).toFixed(1) : null;
+    if (newScores.length > 0) {
+      return (newScores.reduce((a: number, b: number) => a + b, 0) / newScores.length).toFixed(1);
+    }
+    // Fallback to old format
+    const oldScores = [eval_.devocional, eval_.oracao, eval_.comunhao, eval_.evangelismo].filter(
+      (s) => s != null
+    );
+    return oldScores.length > 0 ? (oldScores.reduce((a: number, b: number) => a + b, 0) / oldScores.length).toFixed(1) : null;
   };
 
   // Detail view for a selected mentee
@@ -178,6 +186,7 @@ const MeusDiscipulos = () => {
             const pct = getMenteeProgress(mentee?.id);
             const latestEval = latestAvaliacoes?.[m.id];
             const avg = getAvgScore(latestEval);
+            const isNewFormat = (latestEval as any)?.seguranca != null || (latestEval as any)?.sensibilidade != null;
 
             return (
               <Card
@@ -215,7 +224,7 @@ const MeusDiscipulos = () => {
                     </span>
                     {avg ? (
                       <Badge variant="secondary" className="text-xs">
-                        {avg}/5
+                        {avg}/{isNewFormat ? "10" : "5"}
                       </Badge>
                     ) : (
                       <span className="text-muted-foreground">—</span>

@@ -74,7 +74,7 @@ const Discipulado = () => {
               <Card
                 key={m.id}
                 className="cursor-pointer hover:border-primary/50 transition-colors"
-                onClick={() => setSelectedId(m.id)}
+                onClick={() => selectMentorship(m)}
               >
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">

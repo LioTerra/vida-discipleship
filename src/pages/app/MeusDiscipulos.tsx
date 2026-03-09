@@ -23,13 +23,18 @@ const MeusDiscipulos = () => {
     return <Navigate to="/app/inicio" replace />;
   }
 
+  const isAdmin = profile?.role === "admin";
+
   const { data: allMentorships, isLoading } = useQuery({
-    queryKey: ["my-mentees-all"],
+    queryKey: ["my-mentees-all", isAdmin],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("mentorships")
-        .select("*, mentee:profiles!mentorships_mentee_id_fkey(id, nome, email)")
-        .eq("mentor_id", user!.id);
+        .select("*, mentee:profiles!mentorships_mentee_id_fkey(id, nome, email), mentor:profiles!mentorships_mentor_id_fkey(id, nome)");
+      if (!isAdmin) {
+        query = query.eq("mentor_id", user!.id);
+      }
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     },

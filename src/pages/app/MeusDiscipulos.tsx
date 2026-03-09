@@ -185,6 +185,7 @@ const MeusDiscipulos = () => {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {mentorships.map((m) => {
             const mentee = m.mentee as any;
+            const mentor = (m as any).mentor as any;
             const pct = getMenteeProgress(mentee?.id);
             const latestEval = latestAvaliacoes?.[m.id];
             const avg = getAvgScore(latestEval);
@@ -207,6 +208,11 @@ const MeusDiscipulos = () => {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <p className="text-sm text-muted-foreground">{mentee?.email}</p>
+                  {isAdmin && mentor && (
+                    <p className="text-xs text-muted-foreground">
+                      Mentor: <span className="text-foreground">{mentor.nome}</span>
+                    </p>
+                  )}
 
                   {/* Course progress */}
                   <div className="space-y-1">

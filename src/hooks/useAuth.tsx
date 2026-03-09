@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       toast({ title: message, variant: "destructive" });
     }
     navigate("/login", { replace: true });
-    signingOut.current = false;
+    setTimeout(() => { signingOut.current = false; }, 500);
   };
 
   const loadAndCheckProfile = async (userId: string, skipAtivoCheck = false): Promise<Profile | null> => {

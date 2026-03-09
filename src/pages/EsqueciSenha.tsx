@@ -25,7 +25,7 @@ const EsqueciSenha = () => {
     });
 
     if (resetError) {
-      setError(resetError.message);
+      setError(translateAuthError(resetError.message));
       setLoading(false);
       return;
     }

@@ -86,7 +86,7 @@ const RedefinirSenha = () => {
     });
 
     if (updateError) {
-      setError(updateError.message);
+      setError(translateAuthError(updateError.message));
       setLoading(false);
       return;
     }

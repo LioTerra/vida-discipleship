@@ -155,7 +155,16 @@ export default function GerenciarConteudo({ onVoltar }: Props) {
     onError: () => toast({ title: "Erro ao reordenar", variant: "destructive" }),
   });
 
-  // ── Drag handlers ──
+  // ── Toggle ativo mutation ──
+  const toggleAtivo = useMutation({
+    mutationFn: async ({ id, ativo }: { id: string; ativo: boolean }) => {
+      const { error } = await supabase.from("cursos").update({ ativo }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => { invalidateAll(); toast({ title: "Status do curso atualizado" }); },
+    onError: () => toast({ title: "Erro ao atualizar status", variant: "destructive" }),
+  });
+
   const handleDragEndCursos = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id || !cursos) return;

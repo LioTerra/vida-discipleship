@@ -344,6 +344,7 @@ export default function GerenciarConteudo({ onVoltar }: Props) {
                   onAddAula={(moduloId) => openAulaDialog(moduloId)}
                   onEditAula={openAulaDialog}
                   onDeleteAula={(a) => setDeleteDialog({ open: true, type: "aula", id: a.id, name: a.titulo })}
+                  onToggleAtivo={(id, ativo) => toggleAtivo.mutate({ id, ativo })}
                   onDragEndModulos={handleDragEndModulos(curso.id)}
                   onDragEndAulas={handleDragEndAulas}
                 />

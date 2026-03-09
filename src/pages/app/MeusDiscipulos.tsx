@@ -119,6 +119,14 @@ const MeusDiscipulos = () => {
     return oldScores.length > 0 ? (oldScores.reduce((a: number, b: number) => a + b, 0) / oldScores.length).toFixed(1) : null;
   };
 
+  const selectMentorship = useCallback((m: any) => {
+    if (!isAdmin && m.mentor_id !== user?.id) {
+      toast({ title: "Acesso não autorizado.", variant: "destructive" });
+      return;
+    }
+    setSelectedMentorship(m);
+  }, [isAdmin, user?.id]);
+
   // Detail view for a selected mentee
   if (selectedMentorship) {
     return (

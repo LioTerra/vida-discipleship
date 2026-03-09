@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import AvaliacaoHistorico from "@/components/discipulado/AvaliacaoHistorico";
+import PulsoDeVidaRadar from "@/components/discipulado/PulsoDeVidaRadar";
 
 type MentorshipStatus = "ativo" | "pausado" | "concluido" | "todos";
 

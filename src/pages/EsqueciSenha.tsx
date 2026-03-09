@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, CheckCircle, ArrowLeft } from "lucide-react";
+import { translateAuthError } from "@/lib/translateAuthError";
 
 const EsqueciSenha = () => {
   const [email, setEmail] = useState("");

@@ -72,6 +72,29 @@ const Configuracoes = () => {
           </Button>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Lock className="h-5 w-5" />
+            Alterar Senha
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="newPassword">Nova senha</Label>
+            <Input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 6 caracteres" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Confirmar nova senha</Label>
+            <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repita a nova senha" />
+          </div>
+          <Button onClick={handleChangePassword} disabled={savingPassword} className="w-full">
+            {savingPassword && <Loader2 className="h-4 w-4 animate-spin" />}
+            Alterar Senha
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 };

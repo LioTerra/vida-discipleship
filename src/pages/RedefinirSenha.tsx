@@ -20,14 +20,28 @@ const RedefinirSenha = () => {
   const passwordMismatch = confirmPassword.length > 0 && password !== confirmPassword;
 
   useEffect(() => {
-    // Supabase auto-exchanges the recovery token from the URL hash for a session
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
+    // Check URL hash for recovery token (Supabase appends #access_token=...&type=recovery)
+    const hash = window.location.hash;
+    if (hash && hash.includes("type=recovery")) {
+      // Supabase client auto-exchanges the token; just wait for session
+      const checkSession = async () => {
+        // Give Supabase a moment to process the hash
+        await new Promise((r) => setTimeout(r, 500));
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setSessionReady(true);
+        }
+      };
+      checkSession();
+    }
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
         setSessionReady(true);
       }
     });
 
-    // Also check if there's already a session (user may have arrived with valid token)
+    // Also check if there's already a valid session (user arrived after token exchange)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) setSessionReady(true);
     });

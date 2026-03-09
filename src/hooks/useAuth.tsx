@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return data;
     } catch {
       if (!skipAtivoCheck) {
-        await forceSignOut("Seu acesso foi desativado. Entre em contato com o administrador.");
+        await forceSignOut("Seu acesso ainda não foi liberado. Aguarde a confirmação do administrador.");
       }
       return null;
     }

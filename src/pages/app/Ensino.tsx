@@ -67,15 +67,26 @@ const Ensino = () => {
     return Math.round((concluidas / aulasDoCurso.length) * 100);
   };
 
+  if (gerenciando && isStaffOrAdmin) {
+    return <GerenciarConteudo onVoltar={() => setGerenciando(false)} />;
+  }
+
   if (cursoAberto) {
     return <CursoDetalhe curso={cursoAberto} onVoltar={() => setCursoAberto(null)} />;
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Ensino</h1>
-        <p className="text-muted-foreground">Cursos disponíveis para você</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Ensino</h1>
+          <p className="text-muted-foreground">Cursos disponíveis para você</p>
+        </div>
+        {isStaffOrAdmin && (
+          <Button variant="outline" onClick={() => setGerenciando(true)} className="gap-2">
+            <Settings className="h-4 w-4" /> Gerenciar Conteúdo
+          </Button>
+        )}
       </div>
 
       {isLoading ? (

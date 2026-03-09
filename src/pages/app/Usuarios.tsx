@@ -93,13 +93,19 @@ const Usuarios = () => {
     },
   });
 
-  const handleToggleAtivo = (id: string, ativo: boolean) => {
+  const handleToggleAtivo = useCallback((id: string, nome: string, ativo: boolean) => {
     if (isSelf(id)) {
       toast({ title: "Você não pode alterar sua própria conta.", variant: "destructive" });
       return;
     }
-    toggleAtivo.mutate({ id, ativo });
-  };
+    if (!ativo) {
+      // Deactivating: show confirmation
+      setConfirmDeactivate({ id, nome });
+    } else {
+      // Activating: no confirmation needed
+      toggleAtivo.mutate({ id, ativo });
+    }
+  }, [profile?.id]);
 
   const handleChangeRole = (id: string, role: string) => {
     if (isSelf(id)) {

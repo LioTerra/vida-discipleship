@@ -5,6 +5,7 @@ import { User, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AvaliacaoForm from "./AvaliacaoForm";
 import AvaliacaoHistorico from "./AvaliacaoHistorico";
+import PulsoDeVidaRadar from "./PulsoDeVidaRadar";
 
 interface MentorshipDetailProps {
   mentorship: any;

@@ -160,7 +160,13 @@ const Registro = () => {
             </Button>
           </form>
 
-          <p className="text-center text-sm text-muted-foreground mt-6">
+          <p className="text-center text-sm text-muted-foreground mt-4">
+            <Link to="/esqueci-senha" className="text-primary hover:underline">
+              Esqueceu sua senha?
+            </Link>
+          </p>
+
+          <p className="text-center text-sm text-muted-foreground mt-2">
             Já tem conta?{" "}
             <Link to="/login" className="text-primary hover:underline">
               Fazer login

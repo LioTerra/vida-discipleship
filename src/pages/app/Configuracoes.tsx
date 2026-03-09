@@ -1,22 +1,71 @@
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { Navigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { toast } from "@/hooks/use-toast";
+import { Settings, Loader2 } from "lucide-react";
 
 const Configuracoes = () => {
   const { profile } = useAuth();
+  const [nome, setNome] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [saving, setSaving] = useState(false);
 
-  if (profile?.role !== "admin") {
-    return <Navigate to="/app/inicio" replace />;
-  }
+  useEffect(() => {
+    if (profile) {
+      setNome(profile.nome || "");
+      setTelefone(profile.telefone || "");
+    }
+  }, [profile]);
+
+  const handleSave = async () => {
+    if (!profile) return;
+    if (!nome.trim()) {
+      toast({ title: "Nome é obrigatório", variant: "destructive" });
+      return;
+    }
+
+    setSaving(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ nome: nome.trim(), telefone: telefone.trim() || null })
+      .eq("id", profile.id);
+
+    setSaving(false);
+
+    if (error) {
+      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Perfil atualizado com sucesso!" });
+    }
+  };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-lg">
       <h1 className="text-2xl font-bold">Configurações</h1>
       <Card>
-        <CardContent className="py-12 text-center">
-          <Settings className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">Configurações do sistema — em breve.</p>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Settings className="h-5 w-5" />
+            Editar Perfil
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="nome">Nome</Label>
+            <Input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Seu nome" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="telefone">Telefone</Label>
+            <Input id="telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="(00) 00000-0000" />
+          </div>
+          <Button onClick={handleSave} disabled={saving} className="w-full">
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+            Salvar
+          </Button>
         </CardContent>
       </Card>
     </div>

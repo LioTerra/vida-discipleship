@@ -57,13 +57,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (error || !data) {
         if (!skipAtivoCheck) {
-          await forceSignOut("Seu acesso foi desativado. Entre em contato com o administrador.");
+          await forceSignOut("Seu acesso ainda não foi liberado. Aguarde a confirmação do administrador.");
         }
         return null;
       }
 
       if (!data.ativo && !skipAtivoCheck) {
-        await forceSignOut("Seu acesso foi desativado. Entre em contato com o administrador.");
+        await forceSignOut("Seu acesso ainda não foi liberado. Aguarde a confirmação do administrador.");
         return null;
       }
 

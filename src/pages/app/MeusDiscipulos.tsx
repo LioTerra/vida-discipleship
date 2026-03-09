@@ -9,7 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AvaliacaoForm from "@/components/discipulado/AvaliacaoForm";
+
 import AvaliacaoHistorico from "@/components/discipulado/AvaliacaoHistorico";
 
 type MentorshipStatus = "ativo" | "pausado" | "concluido" | "todos";
@@ -143,10 +143,7 @@ const MeusDiscipulos = () => {
           </CardContent>
         </Card>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <AvaliacaoForm mentorshipId={selectedMentorship.id} />
-          <AvaliacaoHistorico mentorshipId={selectedMentorship.id} />
-        </div>
+        <AvaliacaoHistorico mentorshipId={selectedMentorship.id} />
       </div>
     );
   }

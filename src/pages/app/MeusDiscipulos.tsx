@@ -9,7 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AvaliacaoForm from "@/components/discipulado/AvaliacaoForm";
+
 import AvaliacaoHistorico from "@/components/discipulado/AvaliacaoHistorico";
 
 type MentorshipStatus = "ativo" | "pausado" | "concluido" | "todos";

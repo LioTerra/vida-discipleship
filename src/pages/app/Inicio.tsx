@@ -6,25 +6,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { usePendingUsers } from "@/hooks/usePendingUsers";
 
 const Inicio = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const isAdmin = profile?.role === "admin";
-
-  // Admin: pending users count
-  const { data: pendingCount } = useQuery({
-    queryKey: ["pending-users-count"],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true })
-        .eq("ativo", false);
-      return count ?? 0;
-    },
-    enabled: isAdmin,
-    refetchInterval: 30000,
-  });
+  const pendingCount = usePendingUsers();
 
   // 1. Aulas concluídas pelo usuário logado
   const { data: aulasCount } = useQuery({

@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users2, User, BookOpen, Star, ChevronRight, ArrowLeft } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
@@ -19,12 +20,19 @@ const MeusDiscipulos = () => {
   const { user, profile } = useAuth();
   const [selectedMentorship, setSelectedMentorship] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState<MentorshipStatus>("todos");
+  const isAdmin = profile?.role === "admin";
+
+  const selectMentorship = useCallback((m: any) => {
+    if (!isAdmin && m.mentor_id !== user?.id) {
+      toast({ title: "Acesso não autorizado.", variant: "destructive" });
+      return;
+    }
+    setSelectedMentorship(m);
+  }, [isAdmin, user?.id]);
 
   if (profile?.role !== "staff" && profile?.role !== "admin") {
     return <Navigate to="/app/inicio" replace />;
   }
-
-  const isAdmin = profile?.role === "admin";
 
   const { data: allMentorships, isLoading } = useQuery({
     queryKey: ["my-mentees-all", isAdmin],
@@ -118,6 +126,7 @@ const MeusDiscipulos = () => {
     return oldScores.length > 0 ? (oldScores.reduce((a: number, b: number) => a + b, 0) / oldScores.length).toFixed(1) : null;
   };
 
+
   // Detail view for a selected mentee
   if (selectedMentorship) {
     return (
@@ -198,7 +207,7 @@ const MeusDiscipulos = () => {
               <Card
                 key={m.id}
                 className="cursor-pointer hover:border-primary/50 transition-colors"
-                onClick={() => setSelectedMentorship(m)}
+                onClick={() => selectMentorship(m)}
               >
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg flex items-center justify-between">

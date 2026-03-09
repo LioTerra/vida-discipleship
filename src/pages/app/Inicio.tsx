@@ -135,6 +135,18 @@ const Inicio = () => {
 
   return (
     <div className="space-y-6">
+      {isAdmin && !!pendingCount && pendingCount > 0 && (
+        <Alert className="border-primary/50 bg-primary/10">
+          <AlertCircle className="h-4 w-4 text-primary" />
+          <AlertDescription className="flex items-center justify-between w-full">
+            <span>{pendingCount} pessoa(s) aguardando liberação de acesso.</span>
+            <Button size="sm" variant="outline" onClick={() => navigate("/app/usuarios")}>
+              Ver pendentes
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div>
         <h1 className="text-2xl font-bold">
           Olá, {profile?.nome?.split(" ")[0]} 👋

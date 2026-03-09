@@ -138,6 +138,23 @@ const Registro = () => {
               />
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirmar senha</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="Repita a senha"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                minLength={6}
+                className={passwordMismatch ? "border-destructive" : ""}
+              />
+              {passwordMismatch && (
+                <p className="text-sm text-destructive">As senhas não coincidem.</p>
+              )}
+            </div>
+
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? <Loader2 className="animate-spin" /> : "Cadastrar"}
             </Button>

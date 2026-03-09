@@ -244,19 +244,21 @@ export default function GerenciarConteudo({ onVoltar }: Props) {
                   <Accordion type="multiple" className="space-y-2">
                     {modulosDoCurso(curso.id).map((modulo) => (
                       <AccordionItem key={modulo.id} value={modulo.id} className="border border-border rounded-lg px-3">
-                        <AccordionTrigger className="hover:no-underline py-2">
-                          <div className="flex items-center gap-2 text-left flex-1 mr-2">
-                            <span className="text-sm font-medium">{modulo.titulo}</span>
-                            <Badge variant="outline" className="text-xs">{aulasDoModulo(modulo.id).length} aulas</Badge>
+                        <div className="flex items-center">
+                          <AccordionTrigger className="hover:no-underline py-2 flex-1">
+                            <div className="flex items-center gap-2 text-left flex-1 mr-2">
+                              <span className="text-sm font-medium">{modulo.titulo}</span>
+                              <Badge variant="outline" className="text-xs">{aulasDoModulo(modulo.id).length} aulas</Badge>
+                            </div>
+                          </AccordionTrigger>
+                          <div className="flex gap-1 shrink-0">
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); openModuloDialog(curso.id, modulo); }}>
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setDeleteDialog({ open: true, type: "modulo", id: modulo.id, name: modulo.titulo }); }}>
+                              <Trash2 className="h-3 w-3 text-destructive" />
+                            </Button>
                           </div>
-                        </AccordionTrigger>
-                        <div className="flex gap-1 absolute right-10 top-1/2 -translate-y-1/2" style={{ position: "relative", marginTop: "-2rem", marginBottom: "-0.5rem", justifyContent: "flex-end" }}>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openModuloDialog(curso.id, modulo)}>
-                            <Pencil className="h-3 w-3" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteDialog({ open: true, type: "modulo", id: modulo.id, name: modulo.titulo })}>
-                            <Trash2 className="h-3 w-3 text-destructive" />
-                          </Button>
                         </div>
                         <AccordionContent>
                           <div className="space-y-1 pb-2">

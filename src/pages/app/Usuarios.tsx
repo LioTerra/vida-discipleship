@@ -119,7 +119,7 @@ const Usuarios = () => {
                       <TableCell>
                         <Select
                           value={u.role ?? "user"}
-                          onValueChange={(role) => changeRole.mutate({ id: u.id, role })}
+                          onValueChange={(role) => handleChangeRole(u.id, role)}
                         >
                           <SelectTrigger className="w-28">
                             <SelectValue />

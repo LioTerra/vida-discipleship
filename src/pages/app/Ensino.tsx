@@ -2,17 +2,21 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { BookOpen, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { BookOpen, ChevronRight, Settings } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useState } from "react";
 import CursoDetalhe from "@/components/ensino/CursoDetalhe";
+import GerenciarConteudo from "@/components/ensino/GerenciarConteudo";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Curso = Tables<"cursos">;
 
 const Ensino = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [cursoAberto, setCursoAberto] = useState<Curso | null>(null);
+  const [gerenciando, setGerenciando] = useState(false);
+  const isStaffOrAdmin = profile?.role === "admin" || profile?.role === "staff";
 
   const { data: cursos, isLoading } = useQuery({
     queryKey: ["cursos"],
@@ -63,15 +67,26 @@ const Ensino = () => {
     return Math.round((concluidas / aulasDoCurso.length) * 100);
   };
 
+  if (gerenciando && isStaffOrAdmin) {
+    return <GerenciarConteudo onVoltar={() => setGerenciando(false)} />;
+  }
+
   if (cursoAberto) {
     return <CursoDetalhe curso={cursoAberto} onVoltar={() => setCursoAberto(null)} />;
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Ensino</h1>
-        <p className="text-muted-foreground">Cursos disponíveis para você</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Ensino</h1>
+          <p className="text-muted-foreground">Cursos disponíveis para você</p>
+        </div>
+        {isStaffOrAdmin && (
+          <Button variant="outline" onClick={() => setGerenciando(true)} className="gap-2">
+            <Settings className="h-4 w-4" /> Gerenciar Conteúdo
+          </Button>
+        )}
       </div>
 
       {isLoading ? (

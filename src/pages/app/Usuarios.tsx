@@ -142,7 +142,7 @@ const Usuarios = () => {
               <SelectContent>
                 <SelectItem value="todos">Todas roles</SelectItem>
                 <SelectItem value="user">Usuário</SelectItem>
-                <SelectItem value="staff">Staff</SelectItem>
+                <SelectItem value="staff">Discipulador</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
               </SelectContent>
             </Select>
@@ -204,7 +204,7 @@ const Usuarios = () => {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="user">Usuário</SelectItem>
-                            <SelectItem value="staff">Staff</SelectItem>
+                            <SelectItem value="staff">Discipulador</SelectItem>
                             <SelectItem value="admin">Admin</SelectItem>
                           </SelectContent>
                         </Select>

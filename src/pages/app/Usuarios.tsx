@@ -37,6 +37,8 @@ const Usuarios = () => {
     },
   });
 
+  const isSelf = (id: string) => id === profile?.id;
+
   const toggleAtivo = useMutation({
     mutationFn: async ({ id, ativo }: { id: string; ativo: boolean }) => {
       const { error } = await supabase
@@ -64,6 +66,22 @@ const Usuarios = () => {
       toast({ title: "Role atualizado" });
     },
   });
+
+  const handleToggleAtivo = (id: string, ativo: boolean) => {
+    if (isSelf(id)) {
+      toast({ title: "Você não pode alterar sua própria conta.", variant: "destructive" });
+      return;
+    }
+    toggleAtivo.mutate({ id, ativo });
+  };
+
+  const handleChangeRole = (id: string, role: string) => {
+    if (isSelf(id)) {
+      toast({ title: "Você não pode alterar sua própria conta.", variant: "destructive" });
+      return;
+    }
+    changeRole.mutate({ id, role });
+  };
 
   return (
     <div className="space-y-6">
@@ -101,7 +119,7 @@ const Usuarios = () => {
                       <TableCell>
                         <Select
                           value={u.role ?? "user"}
-                          onValueChange={(role) => changeRole.mutate({ id: u.id, role })}
+                          onValueChange={(role) => handleChangeRole(u.id, role)}
                         >
                           <SelectTrigger className="w-28">
                             <SelectValue />
@@ -116,7 +134,7 @@ const Usuarios = () => {
                       <TableCell>
                         <Switch
                           checked={u.ativo ?? false}
-                          onCheckedChange={(ativo) => toggleAtivo.mutate({ id: u.id, ativo })}
+                          onCheckedChange={(ativo) => handleToggleAtivo(u.id, ativo)}
                         />
                       </TableCell>
                     </TableRow>

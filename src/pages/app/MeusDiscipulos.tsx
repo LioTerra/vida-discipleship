@@ -23,13 +23,18 @@ const MeusDiscipulos = () => {
     return <Navigate to="/app/inicio" replace />;
   }
 
+  const isAdmin = profile?.role === "admin";
+
   const { data: allMentorships, isLoading } = useQuery({
-    queryKey: ["my-mentees-all"],
+    queryKey: ["my-mentees-all", isAdmin],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("mentorships")
-        .select("*, mentee:profiles!mentorships_mentee_id_fkey(id, nome, email)")
-        .eq("mentor_id", user!.id);
+        .select("*, mentee:profiles!mentorships_mentee_id_fkey(id, nome, email), mentor:profiles!mentorships_mentor_id_fkey(id, nome)");
+      if (!isAdmin) {
+        query = query.eq("mentor_id", user!.id);
+      }
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     },
@@ -152,8 +157,8 @@ const MeusDiscipulos = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Meus Discípulos</h1>
-          <p className="text-muted-foreground">Mentorados atribuídos a você</p>
+          <h1 className="text-2xl font-bold">{isAdmin ? "Todos os Discipulados" : "Meus Discípulos"}</h1>
+          <p className="text-muted-foreground">{isAdmin ? "Visão geral de todos os mentorados" : "Mentorados atribuídos a você"}</p>
         </div>
         <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as MentorshipStatus)}>
           <TabsList>
@@ -180,6 +185,7 @@ const MeusDiscipulos = () => {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {mentorships.map((m) => {
             const mentee = m.mentee as any;
+            const mentor = (m as any).mentor as any;
             const pct = getMenteeProgress(mentee?.id);
             const latestEval = latestAvaliacoes?.[m.id];
             const avg = getAvgScore(latestEval);
@@ -202,6 +208,11 @@ const MeusDiscipulos = () => {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <p className="text-sm text-muted-foreground">{mentee?.email}</p>
+                  {isAdmin && mentor && (
+                    <p className="text-xs text-muted-foreground">
+                      Mentor: <span className="text-foreground">{mentor.nome}</span>
+                    </p>
+                  )}
 
                   {/* Course progress */}
                   <div className="space-y-1">

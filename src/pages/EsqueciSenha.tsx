@@ -20,7 +20,7 @@ const EsqueciSenha = () => {
     setLoading(true);
 
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/redefinir-senha`,
+      redirectTo: `${window.location.origin}/reset-password`,
     });
 
     if (resetError) {

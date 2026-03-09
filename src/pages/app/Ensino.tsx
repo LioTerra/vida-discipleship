@@ -2,10 +2,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { BookOpen, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { BookOpen, ChevronRight, Settings } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useState } from "react";
 import CursoDetalhe from "@/components/ensino/CursoDetalhe";
+import GerenciarConteudo from "@/components/ensino/GerenciarConteudo";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Curso = Tables<"cursos">;

@@ -99,9 +99,15 @@ const RedefinirSenha = () => {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <Card className="w-full max-w-md border-border">
-          <CardContent className="pt-8 pb-8 px-8 text-center">
-            <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary mb-4" />
+          <CardContent className="pt-8 pb-8 px-8 text-center space-y-4">
+            <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
             <p className="text-muted-foreground text-sm">Verificando link de recuperação...</p>
+            <p className="text-muted-foreground text-xs">
+              Se esta tela persistir, o link pode ter expirado.{" "}
+              <Link to="/esqueci-senha" className="text-primary hover:underline">
+                Solicite um novo link
+              </Link>
+            </p>
           </CardContent>
         </Card>
       </div>

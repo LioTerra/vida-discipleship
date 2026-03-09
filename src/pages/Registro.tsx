@@ -13,13 +13,22 @@ const Registro = () => {
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const passwordMismatch = confirmPassword.length > 0 && password !== confirmPassword;
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (password !== confirmPassword) {
+      setError("As senhas não coincidem.");
+      return;
+    }
+
     setLoading(true);
 
     const { error: authError } = await supabase.auth.signUp({

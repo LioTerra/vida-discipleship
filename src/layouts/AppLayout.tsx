@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { AppSidebar } from "@/components/AppSidebar";
+import { BottomNav } from "@/components/BottomNav";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { LogOut, Loader2 } from "lucide-react";
@@ -31,21 +32,29 @@ const AppLayout = () => {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
-        <AppSidebar />
+        {/* Sidebar hidden on mobile */}
+        <div className="hidden md:block">
+          <AppSidebar />
+        </div>
+
         <div className="flex-1 flex flex-col">
           <header className="h-14 border-b border-border flex items-center justify-between px-4">
-            <SidebarTrigger />
+            <SidebarTrigger className="hidden md:flex" />
+            <span className="text-primary font-bold text-lg md:hidden">V</span>
             <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground">{profile.nome}</span>
+              <span className="text-sm text-muted-foreground hidden sm:inline">{profile.nome}</span>
               <Button variant="ghost" size="icon" onClick={signOut}>
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
           </header>
-          <main className="flex-1 p-6">
+          <main className="flex-1 p-4 md:p-6 pb-20 md:pb-6">
             <Outlet />
           </main>
         </div>
+
+        {/* Bottom nav visible only on mobile */}
+        <BottomNav />
       </div>
     </SidebarProvider>
   );

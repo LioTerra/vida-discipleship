@@ -1,18 +1,20 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShieldAlert } from "lucide-react";
 
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_SECONDS = 600;
 
 const Login = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const blocked = searchParams.get("blocked") === "1";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -54,6 +56,7 @@ const Login = () => {
     e.preventDefault();
     if (isLockedOut) return;
     setError("");
+    if (blocked) setSearchParams({}, { replace: true });
     setLoading(true);
 
     const { error: authError } = await supabase.auth.signInWithPassword({
@@ -98,6 +101,15 @@ const Login = () => {
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
+            {blocked && (
+              <Alert className="border-yellow-600/50 bg-yellow-950/30 text-yellow-200">
+                <ShieldAlert className="h-4 w-4 !text-yellow-400" />
+                <AlertDescription className="text-yellow-200">
+                  Seu acesso ainda não foi liberado. Aguarde a confirmação do administrador.
+                </AlertDescription>
+              </Alert>
+            )}
+
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>

@@ -30,6 +30,7 @@ const Usuarios = () => {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("todos");
   const [statusFilter, setStatusFilter] = useState("todos");
+  const [confirmDeactivate, setConfirmDeactivate] = useState<{ id: string; nome: string } | null>(null);
 
   const { data: users, isLoading } = useQuery({
     queryKey: ["all-users"],

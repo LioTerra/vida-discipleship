@@ -59,11 +59,11 @@ const Usuarios = () => {
     });
   }, [users, search, roleFilter, statusFilter]);
 
+  const isSelf = (id: string) => id === profile?.id;
+
   if (profile?.role !== "admin") {
     return <Navigate to="/app/inicio" replace />;
   }
-
-  const isSelf = (id: string) => id === profile?.id;
 
   const toggleAtivo = useMutation({
     mutationFn: async ({ id, ativo }: { id: string; ativo: boolean }) => {

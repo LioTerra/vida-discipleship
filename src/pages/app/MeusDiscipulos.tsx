@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import AvaliacaoHistorico from "@/components/discipulado/AvaliacaoHistorico";
+import PulsoDeVidaRadar from "@/components/discipulado/PulsoDeVidaRadar";
 
 type MentorshipStatus = "ativo" | "pausado" | "concluido" | "todos";
 
@@ -147,6 +148,8 @@ const MeusDiscipulos = () => {
             <Progress value={getMenteeProgress((selectedMentorship.mentee as any)?.id)} className="h-2 mt-1" />
           </CardContent>
         </Card>
+
+        <PulsoDeVidaRadar mentorshipId={selectedMentorship.id} />
 
         <AvaliacaoHistorico mentorshipId={selectedMentorship.id} />
       </div>

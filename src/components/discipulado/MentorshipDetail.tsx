@@ -5,6 +5,7 @@ import { User, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AvaliacaoForm from "./AvaliacaoForm";
 import AvaliacaoHistorico from "./AvaliacaoHistorico";
+import PulsoDeVidaRadar from "./PulsoDeVidaRadar";
 
 interface MentorshipDetailProps {
   mentorship: any;
@@ -51,6 +52,8 @@ export default function MentorshipDetail({ mentorship, onBack }: MentorshipDetai
           )}
         </CardContent>
       </Card>
+
+      <PulsoDeVidaRadar mentorshipId={mentorship.id} />
 
       <div className={`grid gap-6 ${!isMentor ? "lg:grid-cols-2" : ""}`}>
         {!isMentor && <AvaliacaoForm mentorshipId={mentorship.id} />}

@@ -47,6 +47,29 @@ const Configuracoes = () => {
     }
   };
 
+  const handleChangePassword = async () => {
+    if (newPassword.length < 6) {
+      toast({ title: "A senha deve ter no mínimo 6 caracteres", variant: "destructive" });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast({ title: "As senhas não coincidem", variant: "destructive" });
+      return;
+    }
+
+    setSavingPassword(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setSavingPassword(false);
+
+    if (error) {
+      toast({ title: "Erro ao alterar senha", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Senha alterada com sucesso!" });
+      setNewPassword("");
+      setConfirmPassword("");
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-lg">
       <h1 className="text-2xl font-bold">Configurações</h1>

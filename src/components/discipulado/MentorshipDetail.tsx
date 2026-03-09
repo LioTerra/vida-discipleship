@@ -52,8 +52,8 @@ export default function MentorshipDetail({ mentorship, onBack }: MentorshipDetai
         </CardContent>
       </Card>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <AvaliacaoForm mentorshipId={mentorship.id} />
+      <div className={`grid gap-6 ${!isMentor ? "lg:grid-cols-2" : ""}`}>
+        {!isMentor && <AvaliacaoForm mentorshipId={mentorship.id} />}
         <AvaliacaoHistorico mentorshipId={mentorship.id} />
       </div>
     </div>

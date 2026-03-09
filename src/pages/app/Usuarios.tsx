@@ -37,6 +37,8 @@ const Usuarios = () => {
     },
   });
 
+  const isSelf = (id: string) => id === profile?.id;
+
   const toggleAtivo = useMutation({
     mutationFn: async ({ id, ativo }: { id: string; ativo: boolean }) => {
       const { error } = await supabase
@@ -64,6 +66,22 @@ const Usuarios = () => {
       toast({ title: "Role atualizado" });
     },
   });
+
+  const handleToggleAtivo = (id: string, ativo: boolean) => {
+    if (isSelf(id)) {
+      toast({ title: "Você não pode alterar sua própria conta.", variant: "destructive" });
+      return;
+    }
+    toggleAtivo.mutate({ id, ativo });
+  };
+
+  const handleChangeRole = (id: string, role: string) => {
+    if (isSelf(id)) {
+      toast({ title: "Você não pode alterar sua própria conta.", variant: "destructive" });
+      return;
+    }
+    changeRole.mutate({ id, role });
+  };
 
   return (
     <div className="space-y-6">

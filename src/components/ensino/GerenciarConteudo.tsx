@@ -457,6 +457,7 @@ interface SortableCursoCardProps {
   sensors: ReturnType<typeof useSensors>;
   onEditCurso: (c: Curso) => void;
   onDeleteCurso: (c: Curso) => void;
+  onToggleAtivo: (id: string, ativo: boolean) => void;
   onAddModulo: (cursoId: string) => void;
   onEditModulo: (cursoId: string, m: Modulo) => void;
   onDeleteModulo: (m: Modulo) => void;

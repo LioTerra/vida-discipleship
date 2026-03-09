@@ -224,7 +224,7 @@ const MeusDiscipulos = () => {
                     </span>
                     {avg ? (
                       <Badge variant="secondary" className="text-xs">
-                        {avg}/5
+                        {avg}/{isNewFormat ? "10" : "5"}
                       </Badge>
                     ) : (
                       <span className="text-muted-foreground">—</span>

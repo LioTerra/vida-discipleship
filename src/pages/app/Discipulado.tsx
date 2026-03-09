@@ -1,14 +1,24 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Heart, User } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 import MentorshipDetail from "@/components/discipulado/MentorshipDetail";
 
 const Discipulado = () => {
   const { user } = useAuth();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const selectMentorship = useCallback((m: any) => {
+    if (m.mentor_id !== user?.id && m.mentee_id !== user?.id) {
+      toast({ title: "Acesso não autorizado.", variant: "destructive" });
+      setSelectedId(null);
+      return;
+    }
+    setSelectedId(m.id);
+  }, [user?.id]);
 
   const { data: mentorships, isLoading } = useQuery({
     queryKey: ["my-mentorships"],

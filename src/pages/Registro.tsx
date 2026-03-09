@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, CheckCircle } from "lucide-react";
+import { translateAuthError } from "@/lib/translateAuthError";
 
 const Registro = () => {
   const [nome, setNome] = useState("");
@@ -41,7 +42,7 @@ const Registro = () => {
     });
 
     if (authError) {
-      setError(authError.message);
+      setError(translateAuthError(authError.message));
       setLoading(false);
       return;
     }

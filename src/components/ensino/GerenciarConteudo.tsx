@@ -401,6 +401,8 @@ export default function GerenciarConteudo({ onVoltar }: Props) {
                   sensors={sensors}
                   onEditCurso={openCursoDialog}
                   onDeleteCurso={(c) => setDeleteDialog({ open: true, type: "curso", id: c.id, name: c.titulo })}
+                  onDuplicateCurso={(c) => duplicateCurso.mutate(c.id)}
+                  duplicatingId={duplicatingId}
                   onAddModulo={(cursoId) => openModuloDialog(cursoId)}
                   onEditModulo={openModuloDialog}
                   onDeleteModulo={(m) => setDeleteDialog({ open: true, type: "modulo", id: m.id, name: m.titulo })}

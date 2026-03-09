@@ -20,12 +20,19 @@ const MeusDiscipulos = () => {
   const { user, profile } = useAuth();
   const [selectedMentorship, setSelectedMentorship] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState<MentorshipStatus>("todos");
+  const isAdmin = profile?.role === "admin";
+
+  const selectMentorship = useCallback((m: any) => {
+    if (!isAdmin && m.mentor_id !== user?.id) {
+      toast({ title: "Acesso não autorizado.", variant: "destructive" });
+      return;
+    }
+    setSelectedMentorship(m);
+  }, [isAdmin, user?.id]);
 
   if (profile?.role !== "staff" && profile?.role !== "admin") {
     return <Navigate to="/app/inicio" replace />;
   }
-
-  const isAdmin = profile?.role === "admin";
 
   const { data: allMentorships, isLoading } = useQuery({
     queryKey: ["my-mentees-all", isAdmin],

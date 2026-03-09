@@ -522,6 +522,8 @@ interface SortableCursoCardProps {
   sensors: ReturnType<typeof useSensors>;
   onEditCurso: (c: Curso) => void;
   onDeleteCurso: (c: Curso) => void;
+  onDuplicateCurso: (c: Curso) => void;
+  duplicatingId: string | null;
   onToggleAtivo: (id: string, ativo: boolean) => void;
   onAddModulo: (cursoId: string) => void;
   onEditModulo: (cursoId: string, m: Modulo) => void;
@@ -535,7 +537,7 @@ interface SortableCursoCardProps {
 
 function SortableCursoCard({
   curso, modulosDoCurso, aulasDoModulo, sensors,
-  onEditCurso, onDeleteCurso, onToggleAtivo, onAddModulo, onEditModulo, onDeleteModulo,
+  onEditCurso, onDeleteCurso, onDuplicateCurso, duplicatingId, onToggleAtivo, onAddModulo, onEditModulo, onDeleteModulo,
   onAddAula, onEditAula, onDeleteAula, onDragEndModulos, onDragEndAulas,
 }: SortableCursoCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: curso.id });

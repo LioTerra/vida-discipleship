@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Registro from "./pages/Registro";
 import EsqueciSenha from "./pages/EsqueciSenha";
 import RedefinirSenha from "./pages/RedefinirSenha";
+import AuthConfirm from "./pages/AuthConfirm";
 import AppLayout from "./layouts/AppLayout";
 import Inicio from "./pages/app/Inicio";
 import Usuarios from "./pages/app/Usuarios";
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/registro" element={<Registro />} />
             <Route path="/esqueci-senha" element={<EsqueciSenha />} />
             <Route path="/reset-password" element={<RedefinirSenha />} />
+            <Route path="/auth/confirm" element={<AuthConfirm />} />
             <Route path="/app" element={<AppLayout />}>
               <Route index element={<Navigate to="/app/inicio" replace />} />
               <Route path="inicio" element={<Inicio />} />

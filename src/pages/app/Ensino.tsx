@@ -69,6 +69,61 @@ const Ensino = () => {
     return Math.round((concluidas / aulasDoCurso.length) * 100);
   };
 
+  // Fetch all cursos (including inactive) to check if any exist
+  const { data: allCursosCount } = useQuery({
+    queryKey: ["all-cursos-count"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("cursos")
+        .select("*", { count: "exact", head: true });
+      return count ?? 0;
+    },
+    enabled: isStaffOrAdmin,
+  });
+
+  const seedMutation = useMutation({
+    mutationFn: async () => {
+      // Create curso
+      const { data: curso, error: cursoErr } = await supabase
+        .from("cursos")
+        .insert({ titulo: "Fundamentos do Discipulado", descricao: "Curso introdutório sobre os fundamentos do discipulado cristão.", created_by: user!.id, ordem: 1 })
+        .select()
+        .single();
+      if (cursoErr) throw cursoErr;
+
+      // Create módulos
+      const { data: modulos, error: modErr } = await supabase
+        .from("modulos")
+        .insert([
+          { curso_id: curso.id, titulo: "Contemplar", ordem: 1 },
+          { curso_id: curso.id, titulo: "Identidade em Cristo", ordem: 2 },
+        ])
+        .select();
+      if (modErr) throw modErr;
+
+      const mod1 = modulos.find((m) => m.ordem === 1)!;
+      const mod2 = modulos.find((m) => m.ordem === 2)!;
+
+      // Create aulas
+      const { error: aulasErr } = await supabase.from("aulas").insert([
+        { modulo_id: mod1.id, titulo: "Introdução à Contemplação", tipo: "video" as const, url: "https://www.youtube.com/watch?v=example", ordem: 1 },
+        { modulo_id: mod1.id, titulo: "O significado de Nabat e Proskuneo", tipo: "texto" as const, conteudo_texto: "Texto introdutório sobre contemplação bíblica.", ordem: 2 },
+        { modulo_id: mod2.id, titulo: "Filho, não Órfão", tipo: "video" as const, url: "https://www.youtube.com/watch?v=example", ordem: 1 },
+        { modulo_id: mod2.id, titulo: "A Autoridade do Crente", tipo: "texto" as const, conteudo_texto: "Texto sobre identidade e autoridade espiritual.", ordem: 2 },
+      ]);
+      if (aulasErr) throw aulasErr;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cursos"] });
+      queryClient.invalidateQueries({ queryKey: ["all-cursos-count"] });
+      queryClient.invalidateQueries({ queryKey: ["aulas-por-curso"] });
+      toast({ title: "Conteúdo de exemplo criado com sucesso!" });
+    },
+    onError: (err: any) => {
+      toast({ title: "Erro ao criar conteúdo", description: err.message, variant: "destructive" });
+    },
+  });
+
   if (gerenciando && isStaffOrAdmin) {
     return <GerenciarConteudo onVoltar={() => setGerenciando(false)} />;
   }

@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
-import { ArrowLeft, Plus, Pencil, Trash2, Video, Headphones, FileText, GripVertical } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, Video, Headphones, FileText, GripVertical, Copy, Loader2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import type { Tables } from "@/integrations/supabase/types";
 import type { Database } from "@/integrations/supabase/types";
@@ -277,6 +277,69 @@ export default function GerenciarConteudo({ onVoltar }: Props) {
     onError: () => toast({ title: "Erro ao excluir", variant: "destructive" }),
   });
 
+  // ── Duplicate curso mutation ──
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
+  const duplicateCurso = useMutation({
+    mutationFn: async (cursoId: string) => {
+      setDuplicatingId(cursoId);
+      // Fetch original curso
+      const { data: original, error: cErr } = await supabase.from("cursos").select("*").eq("id", cursoId).single();
+      if (cErr) throw cErr;
+
+      // Create copy
+      const nextOrdem = (cursos?.length ?? 0);
+      const { data: newCurso, error: ncErr } = await supabase.from("cursos").insert({
+        titulo: `${original.titulo} (cópia)`,
+        descricao: original.descricao,
+        ativo: false,
+        ordem: nextOrdem,
+      }).select().single();
+      if (ncErr) throw ncErr;
+
+      // Fetch and copy módulos
+      const { data: origModulos, error: mErr } = await supabase.from("modulos").select("*").eq("curso_id", cursoId).order("ordem");
+      if (mErr) throw mErr;
+
+      for (const mod of origModulos ?? []) {
+        const { data: newMod, error: nmErr } = await supabase.from("modulos").insert({
+          curso_id: newCurso.id,
+          titulo: mod.titulo,
+          descricao: mod.descricao,
+          ordem: mod.ordem,
+        }).select().single();
+        if (nmErr) throw nmErr;
+
+        // Fetch and copy aulas for this módulo
+        const { data: origAulas, error: aErr } = await supabase.from("aulas").select("*").eq("modulo_id", mod.id).order("ordem");
+        if (aErr) throw aErr;
+
+        if (origAulas?.length) {
+          const { error: naErr } = await supabase.from("aulas").insert(
+            origAulas.map((a) => ({
+              modulo_id: newMod.id,
+              titulo: a.titulo,
+              tipo: a.tipo,
+              url: a.url,
+              conteudo_texto: a.conteudo_texto,
+              duracao_min: a.duracao_min,
+              ordem: a.ordem,
+            }))
+          );
+          if (naErr) throw naErr;
+        }
+      }
+    },
+    onSuccess: () => {
+      setDuplicatingId(null);
+      invalidateAll();
+      toast({ title: "Curso duplicado com sucesso!" });
+    },
+    onError: () => {
+      setDuplicatingId(null);
+      toast({ title: "Erro ao duplicar curso", variant: "destructive" });
+    },
+  });
+
   // ── Open dialogs with pre-fill ──
   const openCursoDialog = (curso?: Curso) => {
     resetForm();
@@ -338,6 +401,8 @@ export default function GerenciarConteudo({ onVoltar }: Props) {
                   sensors={sensors}
                   onEditCurso={openCursoDialog}
                   onDeleteCurso={(c) => setDeleteDialog({ open: true, type: "curso", id: c.id, name: c.titulo })}
+                  onDuplicateCurso={(c) => duplicateCurso.mutate(c.id)}
+                  duplicatingId={duplicatingId}
                   onAddModulo={(cursoId) => openModuloDialog(cursoId)}
                   onEditModulo={openModuloDialog}
                   onDeleteModulo={(m) => setDeleteDialog({ open: true, type: "modulo", id: m.id, name: m.titulo })}
@@ -457,6 +522,8 @@ interface SortableCursoCardProps {
   sensors: ReturnType<typeof useSensors>;
   onEditCurso: (c: Curso) => void;
   onDeleteCurso: (c: Curso) => void;
+  onDuplicateCurso: (c: Curso) => void;
+  duplicatingId: string | null;
   onToggleAtivo: (id: string, ativo: boolean) => void;
   onAddModulo: (cursoId: string) => void;
   onEditModulo: (cursoId: string, m: Modulo) => void;
@@ -470,7 +537,7 @@ interface SortableCursoCardProps {
 
 function SortableCursoCard({
   curso, modulosDoCurso, aulasDoModulo, sensors,
-  onEditCurso, onDeleteCurso, onToggleAtivo, onAddModulo, onEditModulo, onDeleteModulo,
+  onEditCurso, onDeleteCurso, onDuplicateCurso, duplicatingId, onToggleAtivo, onAddModulo, onEditModulo, onDeleteModulo,
   onAddAula, onEditAula, onDeleteAula, onDragEndModulos, onDragEndAulas,
 }: SortableCursoCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: curso.id });
@@ -502,6 +569,9 @@ function SortableCursoCard({
               checked={curso.ativo ?? false}
               onCheckedChange={(ativo) => onToggleAtivo(curso.id, ativo)}
             />
+            <Button variant="ghost" size="icon" onClick={() => onDuplicateCurso(curso)} disabled={duplicatingId === curso.id} title="Duplicar curso">
+              {duplicatingId === curso.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy className="h-4 w-4" />}
+            </Button>
             <Button variant="ghost" size="icon" onClick={() => onEditCurso(curso)}>
               <Pencil className="h-4 w-4" />
             </Button>

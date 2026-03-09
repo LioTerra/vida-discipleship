@@ -1,11 +1,30 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Calendar, Heart, GraduationCap } from "lucide-react";
+import { BookOpen, Calendar, Heart, GraduationCap, AlertCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 const Inicio = () => {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
+  const isAdmin = profile?.role === "admin";
+
+  // Admin: pending users count
+  const { data: pendingCount } = useQuery({
+    queryKey: ["pending-users-count"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .eq("ativo", false);
+      return count ?? 0;
+    },
+    enabled: isAdmin,
+    refetchInterval: 30000,
+  });
 
   // 1. Aulas concluídas pelo usuário logado
   const { data: aulasCount } = useQuery({

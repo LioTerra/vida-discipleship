@@ -6,13 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { Settings, Loader2 } from "lucide-react";
+import { Settings, Lock, Loader2 } from "lucide-react";
 
 const Configuracoes = () => {
   const { profile } = useAuth();
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [saving, setSaving] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [savingPassword, setSavingPassword] = useState(false);
 
   useEffect(() => {
     if (profile) {

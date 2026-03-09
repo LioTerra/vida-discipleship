@@ -24,6 +24,7 @@ const AuthContext = createContext<AuthContextType>({
 export const useAuth = () => useContext(AuthContext);
 
 const PUBLIC_ROUTES = ["/login", "/registro", "/esqueci-senha", "/redefinir-senha"];
+const SKIP_ATIVO_CHECK_ROUTES = ["/redefinir-senha"];
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -46,7 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signingOut.current = false;
   };
 
-  const loadAndCheckProfile = async (userId: string): Promise<Profile | null> => {
+  const loadAndCheckProfile = async (userId: string, skipAtivoCheck = false): Promise<Profile | null> => {
     try {
       const { data, error } = await supabase
         .from("profiles")
@@ -55,18 +56,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .maybeSingle();
 
       if (error || !data) {
-        await forceSignOut("Seu acesso foi desativado. Entre em contato com o administrador.");
+        if (!skipAtivoCheck) {
+          await forceSignOut("Seu acesso foi desativado. Entre em contato com o administrador.");
+        }
         return null;
       }
 
-      if (!data.ativo) {
+      if (!data.ativo && !skipAtivoCheck) {
         await forceSignOut("Seu acesso foi desativado. Entre em contato com o administrador.");
         return null;
       }
 
       return data;
     } catch {
-      await forceSignOut("Seu acesso foi desativado. Entre em contato com o administrador.");
+      if (!skipAtivoCheck) {
+        await forceSignOut("Seu acesso foi desativado. Entre em contato com o administrador.");
+      }
       return null;
     }
   };
@@ -86,9 +91,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
 
+        const skipAtivo = SKIP_ATIVO_CHECK_ROUTES.some((r) => window.location.pathname.startsWith(r));
+
         setTimeout(() => {
           if (!isMounted || signingOut.current) return;
-          loadAndCheckProfile(session.user.id).then((p) => {
+          loadAndCheckProfile(session.user.id, skipAtivo).then((p) => {
             if (isMounted && !signingOut.current) {
               setProfile(p);
               setLoading(false);
@@ -108,8 +115,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
+      const skipAtivo = SKIP_ATIVO_CHECK_ROUTES.some((r) => window.location.pathname.startsWith(r));
+
       setUser(session.user);
-      loadAndCheckProfile(session.user.id).then((p) => {
+      loadAndCheckProfile(session.user.id, skipAtivo).then((p) => {
         if (isMounted) {
           setProfile(p);
           setLoading(false);
@@ -134,7 +143,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user || loading || signingOut.current) return;
     if (PUBLIC_ROUTES.includes(location.pathname)) return;
 
-    loadAndCheckProfile(user.id).then((p) => {
+    const skipAtivo = SKIP_ATIVO_CHECK_ROUTES.some((r) => location.pathname.startsWith(r));
+    loadAndCheckProfile(user.id, skipAtivo).then((p) => {
       if (!signingOut.current) {
         setProfile(p);
       }

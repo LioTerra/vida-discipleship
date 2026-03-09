@@ -20,14 +20,28 @@ const RedefinirSenha = () => {
   const passwordMismatch = confirmPassword.length > 0 && password !== confirmPassword;
 
   useEffect(() => {
-    // Supabase auto-exchanges the recovery token from the URL hash for a session
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
+    // Check URL hash for recovery token (Supabase appends #access_token=...&type=recovery)
+    const hash = window.location.hash;
+    if (hash && hash.includes("type=recovery")) {
+      // Supabase client auto-exchanges the token; just wait for session
+      const checkSession = async () => {
+        // Give Supabase a moment to process the hash
+        await new Promise((r) => setTimeout(r, 500));
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setSessionReady(true);
+        }
+      };
+      checkSession();
+    }
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
         setSessionReady(true);
       }
     });
 
-    // Also check if there's already a session (user may have arrived with valid token)
+    // Also check if there's already a valid session (user arrived after token exchange)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) setSessionReady(true);
     });
@@ -85,9 +99,15 @@ const RedefinirSenha = () => {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <Card className="w-full max-w-md border-border">
-          <CardContent className="pt-8 pb-8 px-8 text-center">
-            <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary mb-4" />
+          <CardContent className="pt-8 pb-8 px-8 text-center space-y-4">
+            <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
             <p className="text-muted-foreground text-sm">Verificando link de recuperação...</p>
+            <p className="text-muted-foreground text-xs">
+              Se esta tela persistir, o link pode ter expirado.{" "}
+              <Link to="/esqueci-senha" className="text-primary hover:underline">
+                Solicite um novo link
+              </Link>
+            </p>
           </CardContent>
         </Card>
       </div>

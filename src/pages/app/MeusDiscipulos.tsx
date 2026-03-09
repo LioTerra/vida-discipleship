@@ -149,6 +149,8 @@ const MeusDiscipulos = () => {
           </CardContent>
         </Card>
 
+        <PulsoDeVidaRadar mentorshipId={selectedMentorship.id} />
+
         <AvaliacaoHistorico mentorshipId={selectedMentorship.id} />
       </div>
     );

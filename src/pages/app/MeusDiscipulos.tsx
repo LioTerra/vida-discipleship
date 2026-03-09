@@ -143,10 +143,7 @@ const MeusDiscipulos = () => {
           </CardContent>
         </Card>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <AvaliacaoForm mentorshipId={selectedMentorship.id} />
-          <AvaliacaoHistorico mentorshipId={selectedMentorship.id} />
-        </div>
+        <AvaliacaoHistorico mentorshipId={selectedMentorship.id} />
       </div>
     );
   }

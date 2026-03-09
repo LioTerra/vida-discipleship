@@ -470,7 +470,7 @@ interface SortableCursoCardProps {
 
 function SortableCursoCard({
   curso, modulosDoCurso, aulasDoModulo, sensors,
-  onEditCurso, onDeleteCurso, onAddModulo, onEditModulo, onDeleteModulo,
+  onEditCurso, onDeleteCurso, onToggleAtivo, onAddModulo, onEditModulo, onDeleteModulo,
   onAddAula, onEditAula, onDeleteAula, onDragEndModulos, onDragEndAulas,
 }: SortableCursoCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: curso.id });

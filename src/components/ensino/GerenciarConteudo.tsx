@@ -17,6 +17,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { ArrowLeft, Plus, Pencil, Trash2, Video, Headphones, FileText, GripVertical } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import type { Tables } from "@/integrations/supabase/types";
 import type { Database } from "@/integrations/supabase/types";
 import {
@@ -154,7 +155,16 @@ export default function GerenciarConteudo({ onVoltar }: Props) {
     onError: () => toast({ title: "Erro ao reordenar", variant: "destructive" }),
   });
 
-  // ── Drag handlers ──
+  // ── Toggle ativo mutation ──
+  const toggleAtivo = useMutation({
+    mutationFn: async ({ id, ativo }: { id: string; ativo: boolean }) => {
+      const { error } = await supabase.from("cursos").update({ ativo }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => { invalidateAll(); toast({ title: "Status do curso atualizado" }); },
+    onError: () => toast({ title: "Erro ao atualizar status", variant: "destructive" }),
+  });
+
   const handleDragEndCursos = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id || !cursos) return;
@@ -334,6 +344,7 @@ export default function GerenciarConteudo({ onVoltar }: Props) {
                   onAddAula={(moduloId) => openAulaDialog(moduloId)}
                   onEditAula={openAulaDialog}
                   onDeleteAula={(a) => setDeleteDialog({ open: true, type: "aula", id: a.id, name: a.titulo })}
+                  onToggleAtivo={(id, ativo) => toggleAtivo.mutate({ id, ativo })}
                   onDragEndModulos={handleDragEndModulos(curso.id)}
                   onDragEndAulas={handleDragEndAulas}
                 />
@@ -446,6 +457,7 @@ interface SortableCursoCardProps {
   sensors: ReturnType<typeof useSensors>;
   onEditCurso: (c: Curso) => void;
   onDeleteCurso: (c: Curso) => void;
+  onToggleAtivo: (id: string, ativo: boolean) => void;
   onAddModulo: (cursoId: string) => void;
   onEditModulo: (cursoId: string, m: Modulo) => void;
   onDeleteModulo: (m: Modulo) => void;
@@ -458,7 +470,7 @@ interface SortableCursoCardProps {
 
 function SortableCursoCard({
   curso, modulosDoCurso, aulasDoModulo, sensors,
-  onEditCurso, onDeleteCurso, onAddModulo, onEditModulo, onDeleteModulo,
+  onEditCurso, onDeleteCurso, onToggleAtivo, onAddModulo, onEditModulo, onDeleteModulo,
   onAddAula, onEditAula, onDeleteAula, onDragEndModulos, onDragEndAulas,
 }: SortableCursoCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: curso.id });
@@ -485,7 +497,11 @@ function SortableCursoCard({
             <CardTitle className="text-lg">{curso.titulo}</CardTitle>
             {!curso.ativo && <Badge variant="secondary">Inativo</Badge>}
           </div>
-          <div className="flex gap-1">
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={curso.ativo ?? false}
+              onCheckedChange={(ativo) => onToggleAtivo(curso.id, ativo)}
+            />
             <Button variant="ghost" size="icon" onClick={() => onEditCurso(curso)}>
               <Pencil className="h-4 w-4" />
             </Button>

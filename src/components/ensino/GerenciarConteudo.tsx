@@ -497,7 +497,11 @@ function SortableCursoCard({
             <CardTitle className="text-lg">{curso.titulo}</CardTitle>
             {!curso.ativo && <Badge variant="secondary">Inativo</Badge>}
           </div>
-          <div className="flex gap-1">
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={curso.ativo ?? false}
+              onCheckedChange={(ativo) => onToggleAtivo(curso.id, ativo)}
+            />
             <Button variant="ghost" size="icon" onClick={() => onEditCurso(curso)}>
               <Pencil className="h-4 w-4" />
             </Button>

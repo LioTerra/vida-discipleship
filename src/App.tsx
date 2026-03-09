@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import Login from "./pages/Login";
 import Registro from "./pages/Registro";
+import EsqueciSenha from "./pages/EsqueciSenha";
+import RedefinirSenha from "./pages/RedefinirSenha";
 import AppLayout from "./layouts/AppLayout";
 import Inicio from "./pages/app/Inicio";
 import Usuarios from "./pages/app/Usuarios";

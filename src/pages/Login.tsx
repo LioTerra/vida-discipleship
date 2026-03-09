@@ -143,7 +143,13 @@ const Login = () => {
             </Button>
           </form>
 
-          <p className="text-center text-sm text-muted-foreground mt-6">
+          <p className="text-center text-sm text-muted-foreground mt-4">
+            <Link to="/esqueci-senha" className="text-primary hover:underline">
+              Esqueci minha senha
+            </Link>
+          </p>
+
+          <p className="text-center text-sm text-muted-foreground mt-2">
             Não tem conta?{" "}
             <Link to="/registro" className="text-primary hover:underline">
               Criar conta

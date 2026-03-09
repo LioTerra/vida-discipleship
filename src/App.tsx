@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import Login from "./pages/Login";
 import Registro from "./pages/Registro";
+import EsqueciSenha from "./pages/EsqueciSenha";
+import RedefinirSenha from "./pages/RedefinirSenha";
 import AppLayout from "./layouts/AppLayout";
 import Inicio from "./pages/app/Inicio";
 import Usuarios from "./pages/app/Usuarios";
@@ -28,6 +30,8 @@ const App = () => (
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Registro />} />
+            <Route path="/esqueci-senha" element={<EsqueciSenha />} />
+            <Route path="/redefinir-senha" element={<RedefinirSenha />} />
             <Route path="/app" element={<AppLayout />}>
               <Route index element={<Navigate to="/app/inicio" replace />} />
               <Route path="inicio" element={<Inicio />} />

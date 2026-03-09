@@ -27,10 +27,6 @@ const Usuarios = () => {
   const [roleFilter, setRoleFilter] = useState("todos");
   const [statusFilter, setStatusFilter] = useState("todos");
 
-  if (profile?.role !== "admin") {
-    return <Navigate to="/app/inicio" replace />;
-  }
-
   const { data: users, isLoading } = useQuery({
     queryKey: ["all-users"],
     queryFn: async () => {
@@ -41,6 +37,7 @@ const Usuarios = () => {
       if (error) throw error;
       return data as Profile[];
     },
+    enabled: profile?.role === "admin",
   });
 
   const filteredUsers = useMemo(() => {
@@ -56,6 +53,10 @@ const Usuarios = () => {
       return matchesSearch && matchesRole && matchesStatus;
     });
   }, [users, search, roleFilter, statusFilter]);
+
+  if (profile?.role !== "admin") {
+    return <Navigate to="/app/inicio" replace />;
+  }
 
   const isSelf = (id: string) => id === profile?.id;
 

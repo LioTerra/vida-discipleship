@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Registro from "./pages/Registro";
 import EsqueciSenha from "./pages/EsqueciSenha";
 import RedefinirSenha from "./pages/RedefinirSenha";
+import AuthConfirm from "./pages/AuthConfirm";
 import AppLayout from "./layouts/AppLayout";
 import Inicio from "./pages/app/Inicio";
 import Usuarios from "./pages/app/Usuarios";

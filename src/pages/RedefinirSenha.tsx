@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, ArrowLeft, AlertTriangle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { translateAuthError } from "@/lib/translateAuthError";
 
 const RedefinirSenha = () => {
   const navigate = useNavigate();

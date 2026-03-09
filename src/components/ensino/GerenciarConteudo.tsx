@@ -569,6 +569,9 @@ function SortableCursoCard({
               checked={curso.ativo ?? false}
               onCheckedChange={(ativo) => onToggleAtivo(curso.id, ativo)}
             />
+            <Button variant="ghost" size="icon" onClick={() => onDuplicateCurso(curso)} disabled={duplicatingId === curso.id} title="Duplicar curso">
+              {duplicatingId === curso.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy className="h-4 w-4" />}
+            </Button>
             <Button variant="ghost" size="icon" onClick={() => onEditCurso(curso)}>
               <Pencil className="h-4 w-4" />
             </Button>

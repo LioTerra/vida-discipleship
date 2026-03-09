@@ -157,6 +157,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [location.pathname]);
 
+  // Auto-retry if user exists but profile is null (transient error)
+  useEffect(() => {
+    if (!user || loading || signingOut.current || profile) return;
+    if (PUBLIC_ROUTES.includes(location.pathname)) return;
+
+    const timer = setTimeout(() => {
+      if (signingOut.current) return;
+      const skipAtivo = SKIP_ATIVO_CHECK_ROUTES.some((r) => location.pathname.startsWith(r));
+      loadAndCheckProfile(user.id, skipAtivo).then((p) => {
+        if (!signingOut.current) {
+          setProfile(p);
+        }
+      });
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [user, profile, loading]);
+
   const signOut = async () => {
     await forceSignOut();
   };

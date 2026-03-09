@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,6 +12,10 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { Search, Users } from "lucide-react";
@@ -26,6 +30,7 @@ const Usuarios = () => {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("todos");
   const [statusFilter, setStatusFilter] = useState("todos");
+  const [confirmDeactivate, setConfirmDeactivate] = useState<{ id: string; nome: string } | null>(null);
 
   const { data: users, isLoading } = useQuery({
     queryKey: ["all-users"],
@@ -54,11 +59,7 @@ const Usuarios = () => {
     });
   }, [users, search, roleFilter, statusFilter]);
 
-  if (profile?.role !== "admin") {
-    return <Navigate to="/app/inicio" replace />;
-  }
-
-  const isSelf = (id: string) => id === profile?.id;
+  const isSelf = useCallback((id: string) => id === profile?.id, [profile?.id]);
 
   const toggleAtivo = useMutation({
     mutationFn: async ({ id, ativo }: { id: string; ativo: boolean }) => {
@@ -88,21 +89,29 @@ const Usuarios = () => {
     },
   });
 
-  const handleToggleAtivo = (id: string, ativo: boolean) => {
+  const handleToggleAtivo = useCallback((id: string, nome: string, ativo: boolean) => {
     if (isSelf(id)) {
       toast({ title: "Você não pode alterar sua própria conta.", variant: "destructive" });
       return;
     }
-    toggleAtivo.mutate({ id, ativo });
-  };
+    if (!ativo) {
+      setConfirmDeactivate({ id, nome });
+    } else {
+      toggleAtivo.mutate({ id, ativo });
+    }
+  }, [isSelf, toggleAtivo]);
 
-  const handleChangeRole = (id: string, role: string) => {
+  const handleChangeRole = useCallback((id: string, role: string) => {
     if (isSelf(id)) {
       toast({ title: "Você não pode alterar sua própria conta.", variant: "destructive" });
       return;
     }
     changeRole.mutate({ id, role });
-  };
+  }, [isSelf, changeRole]);
+
+  if (profile?.role !== "admin") {
+    return <Navigate to="/app/inicio" replace />;
+  }
 
   return (
     <div className="space-y-6">
@@ -203,7 +212,7 @@ const Usuarios = () => {
                       <TableCell>
                         <Switch
                           checked={u.ativo ?? false}
-                          onCheckedChange={(ativo) => handleToggleAtivo(u.id, ativo)}
+                          onCheckedChange={(ativo) => handleToggleAtivo(u.id, u.nome, ativo)}
                         />
                       </TableCell>
                     </TableRow>
@@ -218,6 +227,31 @@ const Usuarios = () => {
           <MentoriasTab />
         </TabsContent>
       </Tabs>
+
+      <AlertDialog open={!!confirmDeactivate} onOpenChange={(open) => !open && setConfirmDeactivate(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Desativar usuário?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja desativar <strong>{confirmDeactivate?.nome}</strong>? O usuário perderá acesso ao sistema imediatamente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (confirmDeactivate) {
+                  toggleAtivo.mutate({ id: confirmDeactivate.id, ativo: false });
+                  setConfirmDeactivate(null);
+                }
+              }}
+            >
+              Desativar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

@@ -112,7 +112,6 @@ const Usuarios = () => {
   if (profile?.role !== "admin") {
     return <Navigate to="/app/inicio" replace />;
   }
-  };
 
   return (
     <div className="space-y-6">

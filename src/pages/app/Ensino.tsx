@@ -150,9 +150,15 @@ const Ensino = () => {
         <p className="text-muted-foreground">Carregando cursos...</p>
       ) : !cursos?.length ? (
         <Card>
-          <CardContent className="py-12 text-center">
-            <BookOpen className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+          <CardContent className="py-12 text-center space-y-4">
+            <BookOpen className="mx-auto h-12 w-12 text-muted-foreground" />
             <p className="text-muted-foreground">Nenhum curso disponível ainda.</p>
+            {isStaffOrAdmin && allCursosCount === 0 && (
+              <Button onClick={() => seedMutation.mutate()} disabled={seedMutation.isPending} className="gap-2">
+                {seedMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                Criar Conteúdo de Exemplo
+              </Button>
+            )}
           </CardContent>
         </Card>
       ) : (

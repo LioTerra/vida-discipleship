@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
+import { usePendingUsers } from "@/hooks/usePendingUsers";
+import { Badge } from "@/components/ui/badge";
 import {
   Sidebar,
   SidebarContent,
@@ -23,7 +25,7 @@ const allItems = [
   { title: "Ensino", url: "/app/ensino", icon: BookOpen, roles: ["user", "staff", "admin"] },
   { title: "Discipulado", url: "/app/discipulado", icon: Heart, roles: ["user", "staff", "admin"] },
   { title: "Meus Discípulos", url: "/app/meus-discipulos", icon: Users2, roles: ["staff", "admin"] },
-  { title: "Usuários", url: "/app/usuarios", icon: UserCog, roles: ["admin"] },
+  { title: "Usuários", url: "/app/usuarios", icon: UserCog, roles: ["admin"], badgeKey: "pending" },
   { title: "Configurações", url: "/app/configuracoes", icon: Settings, roles: ["admin"] },
 ];
 
@@ -31,6 +33,7 @@ export function AppSidebar() {
   const { profile } = useAuth();
   const role = profile?.role ?? "user";
   const items = allItems.filter((item) => item.roles.includes(role));
+  const pendingCount = usePendingUsers();
 
   return (
     <Sidebar collapsible="icon">
@@ -54,8 +57,20 @@ export function AppSidebar() {
                       className="flex items-center gap-3 px-3 py-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
                       activeClassName="bg-secondary text-primary font-medium"
                     >
-                      <item.icon className="h-4 w-4 shrink-0" />
-                      <span>{item.title}</span>
+                      <div className="relative shrink-0">
+                        <item.icon className="h-4 w-4" />
+                        {"badgeKey" in item && pendingCount > 0 && (
+                          <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                            {pendingCount > 9 ? "9+" : pendingCount}
+                          </span>
+                        )}
+                      </div>
+                      <span className="flex-1">{item.title}</span>
+                      {"badgeKey" in item && pendingCount > 0 && (
+                        <Badge variant="secondary" className="ml-auto text-[10px] px-1.5 py-0 h-5 group-data-[collapsible=icon]:hidden">
+                          {pendingCount}
+                        </Badge>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

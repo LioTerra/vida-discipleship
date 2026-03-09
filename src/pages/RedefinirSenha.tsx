@@ -95,7 +95,7 @@ const RedefinirSenha = () => {
 
     toast({
       title: "Senha redefinida com sucesso!",
-      description: "Faça login com sua nova senha.",
+      description: "Agora você pode entrar com sua nova senha.",
     });
 
     navigate("/login");

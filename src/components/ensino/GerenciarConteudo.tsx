@@ -17,6 +17,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { ArrowLeft, Plus, Pencil, Trash2, Video, Headphones, FileText, GripVertical } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import type { Tables } from "@/integrations/supabase/types";
 import type { Database } from "@/integrations/supabase/types";
 import {

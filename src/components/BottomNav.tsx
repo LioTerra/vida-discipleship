@@ -18,8 +18,9 @@ const bottomNavItems: Record<string, { title: string; url: string; icon: typeof 
   admin: [
     { title: "Início", url: "/app/inicio", icon: Home },
     { title: "Ensino", url: "/app/ensino", icon: BookOpen },
+    { title: "Discipulado", url: "/app/discipulado", icon: Heart },
+    { title: "Discípulos", url: "/app/meus-discipulos", icon: Users2 },
     { title: "Usuários", url: "/app/usuarios", icon: UserCog, badgeKey: "pending" },
-    { title: "Config", url: "/app/configuracoes", icon: Settings },
   ],
 };
 

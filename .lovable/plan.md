@@ -1,34 +1,97 @@
 
 
-## Problem
+# Ministério Vida — Plataforma de Discipulado Cristão
 
-Two issues identified:
+## Visão Geral
+Uma plataforma web completa para discipulado e ensino de uma igreja no Brasil. Tema dark minimalista com identidade visual em teal (#0d9488). Toda a interface em Português Brasileiro.
 
-1. **Admin bottom nav is missing "Discipulado" tab** -- The admin role's bottom nav only has Início, Ensino, Usuários, and Config. It lacks the Discipulado and Meus Discípulos links. The sidebar has the same gap for admin on mobile (bottom nav is the only nav on mobile).
+---
 
-2. **Admin sidebar also missing Discipulado for admins who are mentees** -- The sidebar includes Discipulado for all roles, so desktop is fine. But on mobile, admin users cannot access `/app/discipulado` or `/app/meus-discipulos`.
+## Fase 1: Configuração Supabase + Identidade Visual
 
-## Plan
+### Conectar Supabase
+- Conectar o projeto ao Supabase (Lovable Cloud ou projeto externo)
+- Aplicar o schema completo via migrações: profiles, mentorships, cursos, modulos, aulas, progresso, avaliacoes
+- Roles ficam na tabela profiles com RLS cuidadosa para impedir que usuários alterem seu próprio `role` ou status `ativo`
+- Trigger automático para criar perfil no signup (com `ativo = false`)
 
-### 1. Update admin bottom nav to include Discipulado
+### Tema Visual
+- Background #0a0a0a, cards #111111, bordas #1f1f1f
+- Cor de destaque: teal-600 (#0d9488)
+- Tipografia limpa, texto branco sobre fundo escuro
+- Estética minimalista em todas as páginas
 
-In `src/components/BottomNav.tsx`, update the `admin` array to include all relevant tabs. Since there are space constraints on mobile (max ~5 tabs), restructure admin bottom nav to:
+---
 
-```
-admin: [
-  Início, Ensino, Discipulado, Discípulos, Usuários
-]
-```
+## Fase 2: Sistema de Autenticação
 
-This adds Discipulado (Heart icon) and Meus Discípulos (Users2 icon) while keeping Usuários. Config can be accessed from desktop sidebar -- it's less critical for mobile bottom nav. Alternatively, keep 5 items max for good UX.
+### Página de Login (`/login`)
+- Card centralizado sobre fundo escuro
+- Logo: letra "V" grande em teal, "Ministério Vida" abaixo, subtítulo "Transformando Famílias, Formando Discípulos, Alcançando Nações."
+- Campos de email e senha, botão teal
+- Link para registro
 
-### 2. No database changes needed
+### Página de Registro (`/registro`)
+- Campos: nome, email, telefone, senha
+- Após envio: mensagem "Cadastro realizado! Aguarde a liberação do seu acesso."
+- Conta criada com `ativo = false` — requer ativação do admin
 
-The network requests show that Leonardo's mentorship with Pastor Domingo exists and is active (id: `657bc863-...`). The RLS policies already allow participants to read their own mentorships. The data loads correctly. The only issue is navigation -- the admin can't reach the Discipulado page on mobile.
+### Redirecionamento por role
+- Após login, checar `ativo` — se falso, mostrar mensagem de acesso pendente
+- Se ativo, redirecionar para `/app/inicio`
 
-### Technical Details
+---
 
-- File: `src/components/BottomNav.tsx` -- Change the `admin` array to include Discipulado and Meus Discípulos tabs
-- No RLS or database changes required
-- No changes to the Discipulado page itself -- it already queries mentorships where the user is mentor OR mentee
+## Fase 3: Layout Protegido + Navegação
+
+### Layout `/app` (rota protegida)
+- Redireciona para `/login` se não autenticado
+- Sidebar colapsável (responsiva em mobile)
+- Header com nome do usuário e botão de logout
+
+### Menu lateral por role
+- **Usuário**: Início, Ensino, Discipulado
+- **Staff**: Início, Ensino, Discipulado, Meus Discípulos
+- **Admin**: Início, Ensino, Discipulado, Usuários, Configurações
+
+---
+
+## Fase 4: Páginas Principais
+
+### Dashboard — Início (`/app/inicio`)
+- Mensagem de boas-vindas com nome do usuário
+- 3 cards de estatísticas:
+  - Aulas concluídas
+  - Semanas de discipulado
+  - Próxima avaliação
+
+### Gestão de Usuários (`/app/usuarios`) — Apenas Admin
+- Tabela com todos os usuários: nome, email, role, status ativo
+- Toggle para ativar/desativar contas
+- Dropdown para alterar role do usuário
+
+### Ensino (`/app/ensino`) — Página inicial
+- Listagem de cursos disponíveis em cards
+- Cada curso mostra título, descrição e progresso do usuário
+- Ao clicar, abre os módulos e aulas do curso
+- Marcar aulas como concluídas (salva no `progresso`)
+
+### Discipulado (`/app/discipulado`)
+- Visualização do mentor/mentorado atribuído
+- Histórico de avaliações semanais
+- Formulário para nova avaliação (5 critérios com nota 1-5 + observações)
+
+### Meus Discípulos (`/app/meus-discipulos`) — Staff
+- Lista dos mentorados atribuídos ao mentor
+- Ver progresso e avaliações de cada mentorado
+
+---
+
+## Fase 5: Segurança (RLS)
+
+- **profiles**: Usuário lê/atualiza apenas seus dados (sem alterar role/ativo); admin lê todos
+- **progresso**: Usuário lê/escreve o próprio; staff/admin lê todos
+- **avaliacoes**: Participantes da mentoria leem/escrevem; admin lê todos
+- **cursos/modulos/aulas**: Todos autenticados leem; apenas staff/admin escrevem
+- **mentorships**: Participantes leem os seus; staff/admin leem todos
 
